@@ -2,7 +2,8 @@
 
 ## Team Charter
 
-### Yuanhui Wang (Elaris)
+### The basic information of each member
+#### Yuanhui Wang (Elaris)
 
 - **Preferred name:** Elaris
 - **Program of study:** Master of Interaction Design
