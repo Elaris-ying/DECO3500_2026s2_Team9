@@ -34,3 +34,11 @@
 - **Email:** [benxuan.wang@student.uq.edu.au]
 - **Personal aim:** To gain practical project experience and develop a better understanding of the complete interaction design workflow, particularly how user research and insights are translated into concepts, prototypes, and meaningful interactive experiences.
 - **Initial duty:** Contribute to user research and interaction design, support prototype development and testing, assist with code refinement, and document key design decisions and iterations.
+
+#### Chunyi Zhang (Tracy)
+
+- **Preferred name:** Tracy
+- **Program of study:** Master of Interaction Design
+- **Email:** [chunyi.zhang@student.uq.edu.au]
+- **Personal aim:** Build end-to-end interaction design capabilities by practicing user research, prototyping and usability testing to deliver user-friendly interactive solutions.
+- **Initial duty:** Complete user research, make prototypes, run usability tests, polish visuals and record design iterations.
