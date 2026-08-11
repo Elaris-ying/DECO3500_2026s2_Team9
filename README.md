@@ -1,6 +1,12 @@
 # DECO3500_2026s2_Team9
 
 ## Team Charter
+### Team Details
+
+- **Project title:** Beyond the Screen: Reimagining Interactive Experiences Through Spatial Media
+- **Team name:** Team 9
+- **GitHub URL:** [Insert GitHub repository URL]
+
 
 ### The basic information of each member
 #### Yuanhui Wang (Elaris)
@@ -11,7 +17,7 @@
 - **Personal aim:** To improve my ability to translate user research findings into practical design decisions and collaborative interactive experiences.
 - **Initial duty:** User research, interaction design, prototyping, and visual documentation.
 
-#### Yifan Song(Ivan)
+#### Yifan Song(Ivan)-Team leader-Team communication representative
 
 - **Preferred name:** Yifan
 - **Program of study:** Master of Interaction Design
@@ -19,7 +25,7 @@
 - **Personal aim:** To develop my ability to turn user needs and research insights into meaningful interactive experiences, especially in the context of public and digital art.
 - **Initial duty:** User research, concept development, interaction design, visual design, and prototype documentation.
 
-#### Mingjie Xi(Xavier)
+#### Mingjie Xi(Xavier)-Team leader
 
 - **Preferred name:** Xavier
 - **Program of study:** Master of Information Technology
