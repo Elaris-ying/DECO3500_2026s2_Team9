@@ -26,3 +26,11 @@
 - **Email:** [mingjie.xi@student.uq.edu.au]
 - **Personal aim:** To leverage my IT background to evaluate technical feasibility and translate user research insights into functional, human-centered interactive experiences in public spaces.
 - **Initial duty:** User research, technical feasibility assessment, system requirements, interaction prototyping, and project documentation.
+
+#### Benxuan Wang(Fufu)
+
+- **Preferred name:** Benxuan
+- **Program of study:** Master of Interaction Design
+- **Email:** [benxuan.wang@student.uq.edu.au]
+- **Personal aim:** To gain practical project experience and develop a better understanding of the complete interaction design workflow, particularly how user research and insights are translated into concepts, prototypes, and meaningful interactive experiences.
+- **Initial duty:** Contribute to user research and interaction design, support prototype development and testing, assist with code refinement, and document key design decisions and iterations.
