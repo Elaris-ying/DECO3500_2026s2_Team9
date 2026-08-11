@@ -1,6 +1,6 @@
 # DECO3500_2026s2_Team9
 
-##Team Charter
+## Team Charter
 
 ### Yuanhui Wang (Elaris)
 
