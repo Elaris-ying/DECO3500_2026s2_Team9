@@ -1,31 +1,33 @@
-### 1. Can you tell me about the last time you visited an art gallery? Who were you with, and what did you do during the visit?
-**Possible follow-up:** Did you take photos, sketch, talk, rest, or do anything else besides looking at artworks?
+**Interviewer:** Can you tell me about the last time you visited an art gallery? Who were you with, and what did you do during the visit?
 
-**Answer:**
-I visited a local art gallery a few months ago with a friend. During the visit, we looked at the different artworks, took a few photos where photography was permitted, and talked about the pieces we liked. We also discussed our favourite artworks and shared our reactions to them as we moved through the gallery.
+**Participant:** It was... I think it was a few months ago. I went to a local gallery with a friend. We walked around and looked at the artworks, and we took a few photos where photography was allowed. And, yeah, we talked quite a lot too. Mostly about the pieces we liked, like... which ones were our favourites and why.
 
-### 2. Can you remember a moment during the visit when something made you stop for longer or pay more attention? What were you doing at that moment?
+**Interviewer:** Can you remember a moment during the visit when something made you stop for longer or pay more attention? What were you doing at that moment?
 
-**Answer:**
-A large landscape painting caught my attention and made me stop for several minutes. I first read the information on the label and then looked more closely at the artwork, particularly the way light was represented and how the brushwork was used. These details encouraged me to spend more time observing the painting.
+**Participant:** Yeah, there was this large landscape painting that made me stop for... quite a while, actually. Maybe a few minutes. I read the label first, and then I looked at the painting again.
 
-### 3. When you visit with friends or other people, how does being with them affect the way you experience the gallery? Can you give an example?
+I think what caught my attention was the light, the way the light was painted, and also the brushwork. So I kind of... kept looking between different parts of the painting. Yeah, I think that was probably the piece I spent the most time with.
 
-**Answer:**
-Visiting with friends makes the experience more interactive because we can exchange observations and point out things to each other. It can also help me notice details that I might otherwise miss. For example, during one visit, a friend pointed out a small figure in an artwork that I had not noticed before, which made me look at the piece more carefully.
+**Interviewer:** When you visit with friends or other people, how does being with them affect the way you experience the gallery? Can you give an example?
 
-### 4. Can you think of a time when another visitor’s behavior, comment, or activity changed what you did or noticed in the gallery?
+**Participant:** I think it makes the whole visit more interactive. Because when you're with a friend, you're not just looking by yourself. You're, you're pointing things out to each other.
 
-**Answer:**
-I once overheard another visitor mention that an installation had been made using recycled materials. Before hearing the comment, I had not paid much attention to the materials themselves. Afterwards, I looked at the installation more closely and began to notice its unusual textures and the different materials used in its construction.
+I remember one time my friend noticed this really small figure in an artwork. I hadn't seen it at all. Like, completely missed it. And then when they pointed it out, I went back and looked again, and... yeah, I started noticing other details around it too.
 
-### 5. Are there moments when you enjoy sharing the experience with other people, and moments when you prefer to explore the gallery by yourself? Why?
+**Interviewer:** Can you think of a time when another visitor's behavior, comment, or activity changed what you did or noticed in the gallery?
 
-**Answer:**
-I enjoy sharing my reactions and discussing artworks with other people, especially after we have both seen something interesting. However, when I want to concentrate more deeply on the artworks, I prefer exploring the gallery alone. Being alone allows me to move at my own pace and decide how long I want to spend with each piece without having to consider someone else’s pace.
+**Participant:** Hmm... yeah. I remember overhearing another visitor say that one installation was made from recycled materials.
 
-### 6. Thinking back on the visit, was there anything that made the experience especially enjoyable, uncomfortable, tiring, or memorable?
-**Possible follow-up:** Was it related to the space, people, activities, or something else?
+Before that, I hadn't really thought about what it was made from. I was just looking at the whole thing. But after I heard that, I kind of looked at it differently. I started looking at the textures and the, the different materials, and trying to work out what had been reused.
 
-**Answer:**
-The open layout and good lighting made the gallery pleasant and comfortable to explore. However, the crowds became tiring after a while because there were many people sharing the space. One of the most memorable parts of the visit was an interactive installation, as it allowed me to engage with the exhibition in a more active way rather than simply observing the artworks.
+**Interviewer:** Are there moments when you enjoy sharing the experience with other people, and moments when you prefer to explore the gallery by yourself? Why?
+
+**Participant:** Yeah, definitely. I like sharing reactions with people, especially after we've both looked at the same artwork. Because sometimes you see completely different things.
+
+But... if I really want to concentrate, then I think I prefer being alone. I can just move at my own pace. If I want to stay somewhere for ten minutes, I can stay there for ten minutes, and if I don't like something I can just, you know, move on. I don't have to match someone else's pace.
+
+**Interviewer:** Thinking back on the visit, was there anything that made the experience especially enjoyable, uncomfortable, tiring, or memorable?
+
+**Participant:** The gallery itself was really pleasant. It was quite open, and the lighting was good, so... it felt comfortable to walk around.
+
+The crowds were probably the tiring part. There were just, there were a lot of people after a while. But there was also this interactive installation that I remember really clearly. I think that was probably the most memorable part because I could actually do something with it instead of just standing there and looking.
