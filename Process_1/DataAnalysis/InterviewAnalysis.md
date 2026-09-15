@@ -2,6 +2,8 @@
 
 This document contains 18 interview pain-point codes. Each source excerpt is assigned to one code for traceability.
 
+After reviewing the interview transcripts, we found that gallery experiences were shaped by several recurring factors: social interaction, physical space, interpretation, participation, and the use of technology. Visitors were influenced by companions and other visitors, but they also wanted to maintain control over their own pace and attention. Physical conditions such as crowding, seating, and wayfinding also affected how long and how deeply they engaged with artworks.
+
 ## C01 Feeling Rushed or Constrained by Companions' Pace
 
 **Number of excerpts:** 6

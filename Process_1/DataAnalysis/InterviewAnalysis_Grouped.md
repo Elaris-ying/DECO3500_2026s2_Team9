@@ -1,9 +1,9 @@
 # Interview Analysis Thematic Grouping
 
-This document groups the 18 interview pain-point codes into higher-level themes.  
+This document groups the 18 interview pain-point codes into five higher-level themes.  
 Each code is assigned to one primary theme so the interview findings can be discussed at a broader analytical level while preserving traceability back to the original coding.
 
-# T1. Social Pace, Sharing, and Co-presence Pressure
+# T1. Visitors Want Social Connection Without Losing Control of Their Own Pace
 
 **Included codes:** C01, C05, C10, C14, C16
 
@@ -24,13 +24,13 @@ Other visitors' behaviour can become socially salient enough to distract attenti
 
 ## Thematic Insight
 
-Gallery visits are socially influenced even when visitors are not actively trying to socialise. Companions can affect pace, strangers can create both opportunities and discomfort, and other visitors' behaviour can change attention and concentration.
+Visitors value social connection, but social presence can also create pressure, distraction, or awkwardness. Companions may affect how long visitors stay with an artwork, while strangers can create both opportunities for connection and discomfort.
 
-This suggests that social interaction in the gallery should not be treated only as direct conversation. Visitors may benefit from low-pressure ways to notice, share, and respond to others while still maintaining control over their own pace and attention.
+This suggests that social interaction should be optional and low-pressure. Visitors should be able to notice, share, and respond to others without being forced to communicate directly or move at the same pace.
 
 ---
 
-# T2. Spatial, Physical, and Environmental Friction
+# T2. Physical and Spatial Conditions Shape How Deeply Visitors Can Engage
 
 **Included codes:** C02, C03, C04, C13
 
@@ -48,13 +48,13 @@ Lighting, slippery floors, and other physical conditions can negatively affect c
 
 ## Thematic Insight
 
-The gallery experience is shaped by physical and spatial conditions as much as by content. Navigation uncertainty, crowding, fatigue, and environmental discomfort can reduce engagement even when visitors are interested in the exhibition.
+Engagement with artworks depends not only on interest, but also on whether the physical environment allows visitors to stay, move, and focus comfortably. Fatigue, crowding, unclear routes, and environmental discomfort can reduce engagement even when visitors are interested.
 
-This suggests a need for lightweight spatial support that helps visitors understand where they have been, where they may want to return, and how to move through the gallery without forcing a fixed route.
+This suggests that gallery support should consider movement, comfort, and navigation as part of the visitor experience rather than treating engagement as purely informational.
 
 ---
 
-# T3. Interpretation and Information Access
+# T3. Visitors Need Interpretation Support Without Information Overload
 
 **Included codes:** C06, C07, C08, C18
 
@@ -72,13 +72,13 @@ Visitors prefer to choose when they want more detail rather than receiving a fix
 
 ## Thematic Insight
 
-Visitors differ in how much interpretive support they want and when they want it. Too little context can leave some visitors uncertain, while too much information can create fatigue or distract from the artwork.
+Visitors can feel uncertain when they do not have enough context, but too much interpretive content can also create fatigue and disengagement. The issue is therefore not simply a lack of information, but a mismatch between the amount of information provided and what visitors want at a particular moment.
 
-Interpretive support should therefore be optional, layered, and visitor-controlled. The system should support personal meaning-making rather than present one authoritative interpretation.
+This suggests that interpretive support should be optional, layered, and visitor-controlled. The system should provide enough support to reduce uncertainty without replacing personal interpretation.
 
 ---
 
-# T4. Participation Confidence and Active Engagement
+# T4. Active Participation Supports Engagement, but Social Uncertainty Can Prevent It
 
 **Included codes:** C09, C11, C12, C15
 
@@ -96,13 +96,13 @@ Active participation can be weakened when the gallery does not provide enough ma
 
 ## Thematic Insight
 
-Visitors may value active engagement but still hesitate when interaction rules are unclear, the activity is publicly visible, or support is insufficient.
+Active participation can help visitors engage more deeply, but people may hesitate when interaction rules are unclear, when they feel watched, or when practical support is limited.
 
-This suggests that participatory features should be simple, low-pressure, and easy to understand. Visitors should be able to contribute without feeling that they are performing in front of others or committing to a complex activity.
+This suggests that participatory experiences should be simple, clear, and low-pressure. Visitors should be able to take part without feeling that they are performing in front of others or committing to a complex task.
 
 ---
 
-# T5. Technology Boundaries and Visitor Autonomy
+# T5. Technology Should Support Exploration Without Taking Control Away from Visitors
 
 **Included code:** C17
 
@@ -111,20 +111,20 @@ Visitors do not want digital tools to dominate the visit, generate constant noti
 
 ## Thematic Insight
 
-Technology is acceptable when it supports the gallery experience without becoming the main focus. Visitors want to maintain a sense of independent exploration and keep attention on the physical artworks.
+Visitors are open to technological support, but they do not want the digital layer to become the main focus of the visit. They want to keep control over their attention, route, and level of interaction.
 
-This suggests that digital interaction should remain optional, lightweight, and available on demand rather than continuously directing behaviour.
+This suggests that technology should remain optional, lightweight, and available on demand. Its role should be to support engagement with artworks and the gallery environment rather than compete with them.
 
 ---
 
 # Cross-Theme Summary
 
-The interview findings can be summarised into five broader concerns:
+The five themes reveal several recurring tensions in the interview data:
 
-1. **Social interaction should remain low-pressure and should not interfere with personal pace or concentration.**
-2. **Spatial and physical conditions strongly affect how long and how comfortably visitors engage.**
-3. **Interpretive support should be flexible and controlled by the visitor.**
-4. **Active participation is valuable, but only when visitors feel confident and socially comfortable using it.**
-5. **Technology should support the visit without taking control away from the visitor or competing with the artwork.**
+1. Visitors value social connection, but they also want control over their own pace and attention.
+2. Engagement depends on physical and spatial conditions, not only on the artwork itself.
+3. Visitors need interpretive support, but they want to control the amount and timing of information.
+4. Active participation can deepen engagement, but uncertainty and social pressure may discourage it.
+5. Technology can support the visit, but it should not dominate attention or reduce visitor autonomy.
 
-These themes provide a higher-level bridge between the original interview coding and the later design insights and opportunities developed for Gallery Echoes.
+Together, these themes show that visitors benefit most from support that is lightweight, optional, and flexible. This provides a clear basis for identifying user needs and later design opportunities for Gallery Echoes.
