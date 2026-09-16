@@ -93,3 +93,59 @@ Ways to save favourites received a high number of responses.
 ### Feature Connection
 
 Visitors can save favourite artworks, their own visual footprints, and traces created by other visitors. They can review this content during or after the gallery visit.
+
+---
+
+# Probe Findings Grouping
+
+The eight probe findings were grouped into four higher-level categories based on recurring visitor needs and interaction preferences.
+
+## G1 — Active & Visual Participation
+
+**Related Findings:** Finding 1 + Finding 2
+
+- Interactive activities received the highest number of responses.
+- Colours and visuals were among the strongest elements for attracting visitors’ attention.
+
+### Grouped Interpretation
+
+Visitors value opportunities for active participation rather than only passively viewing artworks. Visual and colour-based interaction can make this participation more engaging and noticeable within the gallery experience.
+
+---
+
+## G2 — Indirect & Low-Pressure Social Connection
+
+**Related Findings:** Finding 3 + Finding 4 + Finding 5
+
+- Ways to interact with others received a high number of responses.
+- A quiet atmosphere was important to participants.
+- Exploring with others received a relatively high number of responses.
+
+### Grouped Interpretation
+
+Visitors show interest in social connection and in encountering other people’s perspectives, but this interaction should not disrupt the quiet gallery atmosphere. Social features should therefore support indirect, lightweight, and non-verbal forms of connection rather than requiring direct conversation.
+
+---
+
+## G3 — Spatial Support & Visitor Control
+
+**Related Findings:** Finding 6 + Finding 7
+
+- Participants showed a clear need for routes, maps, and navigation support.
+- Personalised gallery routes received a positive response.
+
+### Grouped Interpretation
+
+Visitors benefit from spatial and navigation support while still retaining control over how they explore the gallery. Digital guidance should help visitors understand where they have been and where they may want to go without forcing them to follow a fixed route.
+
+---
+
+## G4 — Personal Collection & Visit Memory
+
+**Related Finding:** Finding 8
+
+- Ways to save favourites received a high number of responses.
+
+### Grouped Interpretation
+
+Visitors value being able to preserve artworks and other gallery content that is personally meaningful to them. Saving favourites can support personal collection, memory, and later reflection on the gallery visit.
