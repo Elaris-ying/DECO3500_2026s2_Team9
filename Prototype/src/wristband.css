@@ -1,0 +1,64 @@
+/* 所有样式限定在体验容器内，手环组件可独立插入 Header、扫描页和桌面侧栏。 */
+.echo-experience .wb-status { position: relative; z-index: 60; width: fit-content; }
+.echo-experience .wb-status button { font-family: inherit; cursor: pointer; }
+.echo-experience .wb-status-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 9px 12px; border: 1px solid rgba(114, 101, 81, .16); border-radius: 24px; background: rgba(253, 251, 246, .84); color: #655c51; font-size: 10px; line-height: 1.25; letter-spacing: .02em; transition: border-color .35s ease, background .35s ease, box-shadow .35s ease; }
+.echo-experience .wb-status-trigger:hover, .echo-experience .wb-status-trigger[aria-expanded="true"] { border-color: rgba(var(--echo-rgb), .6); background: var(--echo-soft); box-shadow: 0 3px 12px rgba(var(--echo-rgb), .08); }
+.echo-experience .wb-status-light { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--echo-color); box-shadow: 0 0 0 3px rgba(var(--echo-rgb), .12); animation: wb-indicator-breathe 3.8s ease-in-out infinite; transition: background .6s ease, box-shadow .6s ease; }
+.echo-experience .wb-status-light[data-signal="scanning"] { animation-duration: 1.7s; }
+.echo-experience .wb-status-chevron { width: 12px; height: 12px; flex: 0 0 12px; transition: transform .3s ease; }
+.echo-experience .wb-status-trigger[aria-expanded="true"] .wb-status-chevron { transform: rotate(180deg); }
+.echo-experience .wb-status-compact .wb-status-trigger { min-height: 32px; padding: 7px 10px; font-size: 10px; }
+.echo-experience .wb-status button:focus-visible { outline: 2px solid var(--echo-ink); outline-offset: 3px; }
+
+/* 非模态浮层保留自然 Tab 顺序；其本身不拦截主界面滚动或键盘操作。 */
+.echo-experience .wb-popover { position: absolute; box-sizing: border-box; top: calc(100% + 12px); left: var(--wb-popover-left, 0); width: var(--wb-popover-width, min(320px, calc(100vw - 40px))); max-height: var(--wb-popover-max-height, 560px); overflow-y: auto; overscroll-behavior: contain; padding: 23px 22px 18px; border: 1px solid rgba(123, 108, 88, .16); border-radius: 24px; background: #fcfaf5; color: #322d27; box-shadow: 0 18px 50px rgba(56, 45, 30, .14), 0 2px 5px rgba(56, 45, 30, .04); animation: wb-popover-enter .32s cubic-bezier(.2, .65, .3, 1) both; }
+.echo-experience .wb-popover-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.echo-experience .wb-eyebrow { margin: 0 0 7px; color: #8a8071; font-size: 8px; line-height: 1.4; font-weight: 600; letter-spacing: .18em; }
+.echo-experience .wb-popover h2 { margin: 0; color: #332d26; font-family: Georgia, 'Times New Roman', serif; font-size: 23px; line-height: 1.2; font-weight: 400; letter-spacing: -.5px; }
+.echo-experience .wb-close { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 5px; margin: -6px -6px 0 0; border: 1px solid transparent; border-radius: 50%; color: #746a5f; background: transparent; transition: background .2s ease; }
+.echo-experience .wb-close:hover { background: #f0ece4; }
+.echo-experience .wb-close svg { width: 15px; height: 15px; }
+.echo-experience .wb-light-caption { display: flex; align-items: center; gap: 11px; margin-top: 2px; }
+.echo-experience .wb-caption-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--echo-color); box-shadow: 0 0 0 5px rgba(var(--echo-rgb), .1); transition: background .6s ease, box-shadow .6s ease; }
+.echo-experience .wb-light-caption div { display: flex; flex-direction: column; gap: 3px; }
+.echo-experience .wb-light-caption strong { color: var(--echo-ink); font-size: 13px; line-height: 1.4; font-weight: 600; transition: color .6s ease; }
+.echo-experience .wb-light-caption div > span { color: #7f7569; font-size: 10px; line-height: 1.4; }
+.echo-experience .wb-signal-description { margin: 13px 0 20px; color: #81766a; font-size: 10px; line-height: 1.7; }
+.echo-experience .wb-feelings { min-width: 0; margin: 0; padding: 18px 0 0; border: 0; border-top: 1px solid #e9e3d9; }
+.echo-experience .wb-feelings legend { float: left; width: 100%; margin: 0 0 11px; padding: 0; color: #635a50; font-size: 10px; line-height: 1.5; }
+.echo-experience .wb-feeling-grid { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.echo-experience .wb-feeling { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 8px; border: 1px solid #e8e1d6; border-radius: 11px; background: transparent; color: #6b6156; text-align: left; font-size: 10px; line-height: 1.3; transition: background .3s ease, border-color .3s ease; }
+.echo-experience .wb-feeling:hover { background: #f2eee6; }
+.echo-experience .wb-feeling[aria-pressed="true"] { border-color: rgba(var(--echo-rgb), .7); background: var(--echo-soft); color: #403a33; }
+.echo-experience .wb-feeling-swatch { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--wb-swatch); }
+.echo-experience .wb-feeling-check { width: 10px; flex: 0 0 10px; margin-left: auto; font-size: 11px; }
+.echo-experience .wb-prototype-note { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 20px 0 4px; color: #82786c; font-size: 9px; line-height: 1.5; letter-spacing: .01em; }
+.echo-experience .wb-prototype-note > span { font-size: 13px; }
+.echo-experience .wb-hardware-note { margin: 0; color: #8a8176; font-size: 8px; line-height: 1.6; text-align: center; }
+
+/* 纯 CSS 手环：米色材质、椭圆内壁、柔和落影与独立 LED 光晕，无需图片依赖。 */
+.echo-experience .wb-preview { position: relative; isolation: isolate; width: 250px; max-width: 100%; height: 172px; margin: 0 auto; }
+.echo-experience .wb-preview-large { width: 320px; height: 218px; }
+.echo-experience .wb-preview-halo { position: absolute; z-index: -1; inset: 18% 2% 3%; border-radius: 50%; background: radial-gradient(ellipse, rgba(var(--echo-rgb), .2), rgba(var(--echo-rgb), .06) 45%, transparent 70%); filter: blur(9px); animation: wb-halo-breathe 4.4s ease-in-out infinite; transition: background .7s ease; }
+.echo-experience .wb-preview-ground { position: absolute; left: 18%; right: 14%; bottom: 12%; height: 11%; border-radius: 50%; background: rgba(88, 73, 53, .13); filter: blur(10px); transform: rotate(-8deg); }
+.echo-experience .wb-band { position: absolute; left: 10%; top: 20%; width: 80%; height: 63%; border: 20px solid #e9e0d4; border-top-color: #eee7dc; border-right-color: #f3ede4; border-bottom-color: #dcd0be; border-radius: 50%; background: transparent; box-shadow: 0 11px 7px -7px rgba(109, 88, 57, .2), inset 0 4px 5px rgba(113, 93, 66, .13), inset 0 -2px 3px rgba(255, 255, 255, .8); transform: rotate(-20deg); }
+.echo-experience .wb-band-edge { position: absolute; inset: -20px; border: 1px solid rgba(255, 255, 255, .72); border-bottom-color: rgba(143, 121, 89, .14); border-radius: inherit; box-shadow: inset 0 1px 2px rgba(255, 255, 255, .7); pointer-events: none; }
+.echo-experience .wb-band-mark { position: absolute; left: -10px; top: 12px; color: rgba(134, 115, 87, .43); font-family: Georgia, 'Times New Roman', serif; font-size: 6px; letter-spacing: .07em; transform: rotate(74deg); }
+.echo-experience .wb-led { position: absolute; left: 27%; bottom: -15px; width: 53%; height: 9px; overflow: visible; border: 1px solid rgba(255, 255, 255, .75); border-radius: 10px; background: var(--echo-color); box-shadow: 0 0 8px 2px rgba(var(--echo-rgb), .45), 0 0 24px 7px rgba(var(--echo-rgb), .2), inset 0 1px 2px rgba(255, 255, 255, .75); animation: wb-led-breathe 4.4s ease-in-out infinite; transition: background .7s ease, box-shadow .7s ease; }
+.echo-experience .wb-led > span { position: absolute; inset: 2px 8px auto; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .58); filter: blur(.5px); }
+.echo-experience .wb-preview-large .wb-band { border-width: 25px; }
+.echo-experience .wb-preview-large .wb-band-edge { inset: -25px; }
+.echo-experience .wb-preview-large .wb-led { bottom: -19px; height: 11px; }
+.echo-experience .wb-preview-large .wb-band-mark { left: -14px; top: 17px; font-size: 8px; }
+.echo-experience .wb-preview[data-signal="scanning"] .wb-led, .echo-experience .wb-preview[data-signal="scanning"] .wb-preview-halo { animation-duration: 1.7s; }
+.echo-experience .wb-preview[data-signal="saved"] .wb-led { animation-duration: 2.8s; }
+
+@keyframes wb-popover-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes wb-led-breathe { 0%, 100% { opacity: .74; } 50% { opacity: 1; } }
+@keyframes wb-halo-breathe { 0%, 100% { opacity: .5; transform: scale(.96); } 50% { opacity: .95; transform: scale(1.04); } }
+@keyframes wb-indicator-breathe { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
+
+/* 尊重系统减少动态效果的设置；保留静态颜色与文字状态提示。 */
+@media (prefers-reduced-motion: reduce) {
+  .echo-experience .wb-status *, .echo-experience .wb-preview, .echo-experience .wb-preview * { animation: none !important; transition: none !important; }
+}
