@@ -1,0 +1,108 @@
+/* 自由调色界面使用独立命名；页面高度由内容决定，竖向滚动由主应用承接。 */
+.echo-experience .wb-colour-studio { --wb-studio-sticky-space: 245px; width: 100%; min-width: 0; color: #4b453a; }
+.echo-experience .wb-colour-studio button, .echo-experience .wb-colour-studio input { font-family: inherit; }
+.echo-experience .wb-studio-preview { position: sticky; top: 10px; z-index: 15; padding: 12px 14px; border: 1px solid #dfd7c9; border-radius: 21px; background: #f4efe5; box-shadow: 0 9px 20px -12px #75604455; }
+.echo-experience .wb-studio-preview-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.echo-experience .wb-studio-preview-top > span { display: flex; align-items: center; gap: 6px; color: #726959; font-size: 9px; line-height: 1.4; }
+.echo-experience .wb-studio-preview-top i { width: 5px; height: 5px; border-radius: 50%; border: 1px solid #8f8574; }
+.echo-experience .wb-studio-preview-top > small { color: #8a7e6b; font-size: 8px; text-align: right; }
+.echo-experience .wb-studio-preview .wb-preview { width: 210px; height: 138px; }
+.echo-experience .wb-studio-output { display: flex; align-items: center; gap: 9px; margin-top: 13px; padding-top: 14px; border-top: 1px solid #e1d9cb; }
+.echo-experience .wb-studio-output-swatch { width: 14px; height: 14px; flex: 0 0 14px; border: 1px solid #c2b6a3; border-radius: 5px; }
+.echo-experience .wb-studio-output > div { display: flex; flex-direction: column; min-width: 0; gap: 4px; }
+.echo-experience .wb-studio-output strong { color: #5c5141; font-size: 10px; line-height: 1.5; font-weight: 500; overflow-wrap: anywhere; }
+.echo-experience .wb-studio-output small { color: #897a64; font-size: 8px; line-height: 1.5; }
+.echo-experience .wb-studio-palette { margin-top: 28px; }
+.echo-experience .wb-studio-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
+.echo-experience .wb-colour-studio h3 { margin: 0; color: #615643; font: 500 12px/1.5 'Segoe UI', Arial, sans-serif; }
+.echo-experience .wb-studio-section-heading > code { color: #88765b; font: 9px/1.5 'Segoe UI', Arial, sans-serif; letter-spacing: .08em; }
+.echo-experience .wb-studio-section-heading > small { color: #94846d; font-size: 8px; }
+.echo-experience .wb-studio-colour-field { position: relative; width: 100%; height: 180px; border: 1px solid #d4c8b7; border-radius: 17px; background-color: var(--wb-studio-hue); background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent); touch-action: none; cursor: crosshair; user-select: none; scroll-margin-top: var(--wb-studio-sticky-space); }
+.echo-experience .wb-studio-colour-field.is-dragging { cursor: crosshair; }
+.echo-experience .wb-studio-field-thumb { position: absolute; display: block; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #29241f7a, 0 2px 6px #0003; transform: translate(-50%, -50%); pointer-events: none; }
+.echo-experience .wb-studio-help { margin: 8px 0 0; color: #94846d; font-size: 8px; line-height: 1.75; }
+.echo-experience .wb-studio-range-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 19px 0 5px; color: #776952; font-size: 10px; line-height: 1.5; }
+.echo-experience .wb-studio-range-label > output { color: #97856a; font-size: 9px; font-variant-numeric: tabular-nums; }
+.echo-experience .wb-studio-range { display: block; width: 100%; height: 28px; margin: 0; padding: 0; accent-color: var(--echo-ink); cursor: pointer; touch-action: pan-y; scroll-margin-top: var(--wb-studio-sticky-space); }
+.echo-experience .wb-studio-hue-range { appearance: none; -webkit-appearance: none; height: 28px; background: transparent; }
+.echo-experience .wb-studio-hue-range::-webkit-slider-runnable-track { height: 9px; border: 1px solid #c9bcaa; border-radius: 10px; background: linear-gradient(to right, #f55, #ece06f, #7ed088, #7ecee1, #8d94d7, #d694cf, #f55); }
+.echo-experience .wb-studio-hue-range::-moz-range-track { height: 9px; border: 1px solid #c9bcaa; border-radius: 10px; background: linear-gradient(to right, #f55, #ece06f, #7ed088, #7ecee1, #8d94d7, #d694cf, #f55); }
+.echo-experience .wb-studio-hue-range::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 17px; height: 17px; margin-top: -5px; border: 2px solid #fffdf7; border-radius: 50%; background: #f9f4e9; box-shadow: 0 0 0 1px #81725b, 0 2px 5px #59442825; }
+.echo-experience .wb-studio-hue-range::-moz-range-thumb { width: 14px; height: 14px; border: 2px solid #fffdf7; border-radius: 50%; background: #f9f4e9; box-shadow: 0 0 0 1px #81725b; }
+.echo-experience .wb-studio-inputs { display: flex; gap: 13px; margin-top: 20px; align-items: flex-start; }
+.echo-experience .wb-studio-hex-form { flex: 1; min-width: 0; }
+.echo-experience .wb-studio-hex-form > label, .echo-experience .wb-studio-native-colour > span { display: block; margin-bottom: 7px; color: #847256; font-size: 9px; line-height: 1.5; }
+.echo-experience .wb-studio-hex-form > div { display: flex; align-items: center; height: 40px; border: 1px solid #d9cdbb; border-radius: 12px; background: #fbf8f1; }
+.echo-experience .wb-studio-hex-form input { width: 100%; min-width: 0; height: 100%; padding: 9px 11px; border: 0; border-radius: 12px; background: transparent; color: #5e513d; font-size: 12px; letter-spacing: .06em; }
+.echo-experience .wb-studio-hex-form button { width: 36px; height: 36px; flex: 0 0 36px; color: #887250; background: transparent; border: 0; border-radius: 50%; }
+.echo-experience .wb-studio-native-colour { display: block; width: 86px; flex: 0 0 86px; }
+.echo-experience .wb-studio-native-colour input { display: block; width: 100%; height: 40px; padding: 5px; border: 1px solid #d9cdbb; border-radius: 12px; background: #fbf8f1; cursor: pointer; }
+.echo-experience .wb-studio-native-colour input::-webkit-color-swatch-wrapper { padding: 0; }
+.echo-experience .wb-studio-native-colour input::-webkit-color-swatch { border: 1px solid #bfb19e; border-radius: 6px; }
+.echo-experience .wb-studio-error { margin: 7px 0 0; color: #995d44; font-size: 9px; line-height: 1.6; }
+.echo-experience .wb-studio-fine-tune { margin-top: 16px; border-bottom: 1px solid #e4dbcc; padding-bottom: 17px; }
+.echo-experience .wb-studio-fine-tune > summary { padding: 6px 0; color: #8e7e65; font-size: 9px; line-height: 1.6; cursor: pointer; }
+.echo-experience .wb-studio-fine-tune > div { padding: 0 2px; }
+.echo-experience .wb-colour-studio .wb-studio-subtitle { margin: 22px 0 13px; font-size: 10px; }
+.echo-experience .wb-studio-common-colours { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px 6px; }
+.echo-experience .wb-studio-common-colours button { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 3px; border: 0; border-radius: 10px; color: #8b795d; background: transparent; }
+.echo-experience .wb-studio-common-colours button > span { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid #bcb09d; border-radius: 50%; color: #fff; font-size: 12px; text-shadow: 0 1px 3px #000c; }
+.echo-experience .wb-studio-common-colours button[aria-pressed="true"] > span { box-shadow: 0 0 0 3px #f7f3ec, 0 0 0 4px #9c8b70; }
+.echo-experience .wb-studio-common-colours small { font-size: 8px; line-height: 1.5; }
+.echo-experience .wb-studio-light-controls { margin-top: 26px; padding-top: 21px; border-top: 1px solid #e0d7c7; }
+.echo-experience .wb-studio-power-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.echo-experience .wb-studio-power-row p { margin: 4px 0 0; color: #958167; font-size: 8px; line-height: 1.6; }
+.echo-experience .wb-studio-reset { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 40px; margin-top: 17px; padding: 9px 14px; border: 1px solid #dcd0bc; border-radius: 20px; background: #faf6ee; color: #897452; font-size: 10px; }
+.echo-experience .wb-studio-demo { margin-top: 25px; padding: 19px 15px 17px; border: 1px solid #e0d4c0; border-radius: 18px; background: #f1ebde; }
+.echo-experience .wb-studio-demo-frames { display: flex; align-items: flex-start; justify-content: space-between; gap: 3px; margin: 13px 0 17px; }
+.echo-experience .wb-studio-demo-frames > span { display: flex; align-items: center; flex-direction: column; gap: 5px; padding: 5px 2px; color: #998365; border-radius: 9px; }
+.echo-experience .wb-studio-demo-frames i { width: 11px; height: 11px; border: 1px solid #bcae95; border-radius: 50%; }
+.echo-experience .wb-studio-demo-frames small { font-size: 7px; line-height: 1.4; }
+.echo-experience .wb-studio-demo-frames .is-current { color: #56472e; background: #fffaf0; box-shadow: 0 0 0 1px #d9c9ad; }
+.echo-experience .wb-studio-demo-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 40px; padding: 10px 14px; border: 1px solid #b5a17d; border-radius: 20px; background: #6c614c; color: #fffaf1; font-size: 10px; }
+.echo-experience .wb-studio-demo-button:disabled { opacity: .5; cursor: default; }
+.echo-experience .wb-studio-status { margin: 19px 0 0; color: #8c7859; font-size: 9px; line-height: 1.75; }
+.echo-experience .wb-studio-hardware-note { margin: 10px 0 0; color: #a18e73; font-size: 8px; line-height: 1.75; }
+/* 键盘聚焦时为常驻手环预览留出空间，避免输入框和按钮滚到预览下方。 */
+.echo-experience .wb-colour-studio :is(button, input, summary, [tabindex]) { scroll-margin-top: var(--wb-studio-sticky-space); }
+.echo-experience .wb-colour-studio :is(button, input, summary, [tabindex]):focus-visible { outline: 2px solid #796343; outline-offset: 3px; }
+@media (max-height: 720px) {
+  .echo-experience .wb-colour-studio { --wb-studio-sticky-space: 215px; }
+  .echo-experience .wb-studio-preview { padding: 9px 12px; border-radius: 17px; }
+  .echo-experience .wb-studio-preview .wb-preview { width: 180px; height: 118px; }
+  .echo-experience .wb-studio-output { padding-top: 9px; margin-top: 9px; }
+  .echo-experience .wb-studio-output small { font-size: 7px; }
+}
+@media (prefers-reduced-motion: reduce) { .echo-experience .wb-colour-studio * { transition: none !important; animation: none !important; } }
+
+/* 真实 Wi-Fi 状态独立于本地视觉反馈；最后确认色只来自板端 ACK。 */
+.echo-experience .wb-wifi-connection { margin-top: 24px; padding: 19px 16px; border: 1px solid #d8cebd; border-radius: 18px; background: #faf6ee; }
+.echo-experience .wb-wifi-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.echo-experience .wb-wifi-heading > div > p { margin: 0 0 5px; font-size: 7px; letter-spacing: 1.2px; line-height: 1.5; color: #94846e; }
+.echo-experience .wb-wifi-heading h3 { font: 20px/1.2 Georgia,serif; letter-spacing: -.5px; }
+.echo-experience .wb-wifi-state { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #ded5c5; background: #f0eade; border-radius: 12px; padding: 5px 7px; font-size: 7px; line-height: 1.4; white-space: nowrap; color: #8b7a60; }
+.echo-experience .wb-wifi-state[data-linked="true"] { color: #65784d; border-color: #c9d2bb; background: #e9eedf; }
+.echo-experience .wb-wifi-setup { margin: 17px 0 0; padding-top: 14px; border-top: 1px solid #e4dac9; }
+.echo-experience .wb-wifi-setup ol { margin: 0; padding-left: 16px; color: #7c6d56; font-size: 9px; line-height: 1.8; }
+.echo-experience .wb-wifi-setup li + li { margin-top: 9px; }
+.echo-experience .wb-wifi-setup strong { font-weight: 600; color: #60533f; }
+.echo-experience .wb-wifi-setup code { font-size: 9px; padding: 1px 4px; border-radius: 3px; background: #eee6d7; color: #6d5b40; }
+.echo-experience .wb-wifi-setup > p { margin: 10px 0 0; font-size: 8px; color: #98866a; line-height: 1.7; }
+.echo-experience .wb-wifi-form { margin-top: 17px; }
+.echo-experience .wb-wifi-form > label { display: block; font-size: 9px; line-height: 1.5; color: #7d6c50; margin-bottom: 7px; }
+.echo-experience .wb-wifi-form > input { width: 100%; min-width: 0; height: 42px; border: 1px solid #d5c8b3; border-radius: 11px; background: #fffaf1; color: #655239; padding: 10px 12px; font-size: 12px; }
+.echo-experience .wb-wifi-form > input:disabled { color: #8d7b5d; background: #f0e9dc; opacity: 1; }
+.echo-experience .wb-wifi-form > input[aria-invalid="true"] { border-color: #b58365; }
+.echo-experience .wb-wifi-form > p:not(.wb-studio-error) { margin: 6px 0 0; color: #9b886c; font-size: 8px; line-height: 1.6; }
+.echo-experience .wb-wifi-connect,.echo-experience .wb-wifi-disconnect { width: 100%; min-height: 41px; border: 1px solid #938063; border-radius: 22px; margin-top: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 10px; color: #fffaf0; background: #6b5d45; }
+.echo-experience .wb-wifi-disconnect { justify-content: center; color: #7e6a4a; border-color: #d5c6af; background: #f4eddf; }
+.echo-experience .wb-wifi-message { margin: 15px 0 0; color: #807054; font-size: 9px; line-height: 1.75; }
+.echo-experience .wb-wifi-error { margin: 10px 0 0; padding: 11px 12px; border: 1px solid #dbc8b7; border-radius: 9px; background: #f5e9de; color: #925f40; font-size: 9px; line-height: 1.75; overflow-wrap: anywhere; }
+.echo-experience .wb-wifi-confirmed { display: flex; align-items: flex-start; gap: 10px; padding-top: 14px; margin-top: 14px; border-top: 1px solid #e3d8c6; }
+.echo-experience .wb-wifi-confirmed-swatch { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; border: 1px solid #b9ac93; border-radius: 5px; }
+.echo-experience .wb-wifi-confirmed > div { min-width: 0; }
+.echo-experience .wb-wifi-confirmed strong { display: block; color: #706044; font-size: 10px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.echo-experience .wb-wifi-confirmed small { display: block; margin-top: 4px; color: #9b8766; font-size: 8px; line-height: 1.6; }
+.echo-experience .wb-wifi-confirmed > p { margin: 0; color: #a18d6b; font-size: 8px; line-height: 1.75; }
+.echo-experience .wb-wifi-footnote { margin: 12px 0 0; color: #a18f73; font-size: 8px; line-height: 1.75; }
+@media (max-width: 359px) { .echo-experience .wb-wifi-connection { padding: 17px 13px; }.echo-experience .wb-wifi-heading h3 { font-size: 19px; }.echo-experience .wb-wifi-state { font-size: 6.8px; padding-left: 5px; padding-right: 5px; } }

@@ -11410,10 +11410,535 @@
 		module.exports = require_react_dom_client_production();
 	}));
 	//#endregion
-	//#region src/wristband.css
+	//#region src/device-colour.mjs
 	var import_react = require_react();
 	var import_react_dom = require_react_dom();
 	var import_client = require_client();
+	var LIGHT_STORAGE_KEY = "gallery-echoes-light-v1";
+	var finite = (value, fallback = 0) => typeof value === "number" && Number.isFinite(value) ? value : fallback;
+	var clamp$1 = (value, min, max) => Math.min(max, Math.max(min, value));
+	function normalizeHex(value) {
+		if (typeof value !== "string") return null;
+		const hex = value.trim().replace(/^#/, "");
+		if (/^[0-9a-f]{3}$/i.test(hex)) return "#" + [...hex.toLowerCase()].map((char) => char + char).join("");
+		return /^[0-9a-f]{6}$/i.test(hex) ? "#" + hex.toLowerCase() : null;
+	}
+	function hexToRgb(value) {
+		const hex = normalizeHex(value);
+		if (!hex) throw new TypeError("A valid HEX colour is required.");
+		return {
+			r: parseInt(hex.slice(1, 3), 16),
+			g: parseInt(hex.slice(3, 5), 16),
+			b: parseInt(hex.slice(5, 7), 16)
+		};
+	}
+	function rgbToHex({ r, g, b }) {
+		return "#" + [
+			r,
+			g,
+			b
+		].map((value) => Math.round(clamp$1(finite(value), 0, 255)).toString(16).padStart(2, "0")).join("");
+	}
+	function hsvToHex({ h, s, v }) {
+		const hue = (finite(h) % 360 + 360) % 360;
+		const saturation = clamp$1(finite(s), 0, 100) / 100;
+		const value = clamp$1(finite(v), 0, 100) / 100;
+		const chroma = value * saturation;
+		const secondary = chroma * (1 - Math.abs(hue / 60 % 2 - 1));
+		const match = value - chroma;
+		const channels = hue < 60 ? [
+			chroma,
+			secondary,
+			0
+		] : hue < 120 ? [
+			secondary,
+			chroma,
+			0
+		] : hue < 180 ? [
+			0,
+			chroma,
+			secondary
+		] : hue < 240 ? [
+			0,
+			secondary,
+			chroma
+		] : hue < 300 ? [
+			secondary,
+			0,
+			chroma
+		] : [
+			chroma,
+			0,
+			secondary
+		];
+		return rgbToHex({
+			r: (channels[0] + match) * 255,
+			g: (channels[1] + match) * 255,
+			b: (channels[2] + match) * 255
+		});
+	}
+	function hexToHsv(value) {
+		const { r, g, b } = hexToRgb(value);
+		const red = r / 255, green = g / 255, blue = b / 255;
+		const max = Math.max(red, green, blue), delta = max - Math.min(red, green, blue);
+		let hue = 0;
+		if (delta) hue = max === red ? (green - blue) / delta % 6 : max === green ? (blue - red) / delta + 2 : (red - green) / delta + 4;
+		return {
+			h: (hue * 60 + 360) % 360,
+			s: max ? delta / max * 100 : 0,
+			v: max * 100
+		};
+	}
+	function mix(hex, base, amount) {
+		const colour = hexToRgb(hex), background = hexToRgb(base);
+		return rgbToHex(Object.fromEntries([
+			"r",
+			"g",
+			"b"
+		].map((channel) => [channel, colour[channel] * amount + background[channel] * (1 - amount)])));
+	}
+	function deriveLightPalette(value) {
+		const hex = normalizeHex(value);
+		if (!hex) throw new TypeError("A valid HEX colour is required.");
+		const { r, g, b } = hexToRgb(hex);
+		return {
+			name: `Custom ${hex.toUpperCase()}`,
+			color: hex,
+			light: hex,
+			soft: mix(hex, "#fcfaf5", .13),
+			ink: mix(hex, "#27231f", .24),
+			rgb: `${r}, ${g}, ${b}`
+		};
+	}
+	function getLightOutput(value, brightness = 100, lightOn = true) {
+		const colour = hexToRgb(value), intensity = lightOn ? clamp$1(finite(brightness, 100), 0, 100) / 100 : 0;
+		const hex = rgbToHex(Object.fromEntries([
+			"r",
+			"g",
+			"b"
+		].map((channel) => [channel, colour[channel] * intensity])));
+		return {
+			...hexToRgb(hex),
+			hex
+		};
+	}
+	function normalizeLightSettings(value) {
+		const settings = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+		return {
+			customColour: normalizeHex(settings.customColour),
+			brightness: clamp$1(finite(settings.brightness, 100), 0, 100),
+			lightOn: typeof settings.lightOn === "boolean" ? settings.lightOn : true
+		};
+	}
+	var ARDUINO_DEMO_FRAMES = Object.freeze([
+		{
+			label: "Red",
+			hex: "#ff0000",
+			lightOn: true
+		},
+		{
+			label: "Green",
+			hex: "#00ff00",
+			lightOn: true
+		},
+		{
+			label: "Blue",
+			hex: "#0000ff",
+			lightOn: true
+		},
+		{
+			label: "Yellow",
+			hex: "#ffff00",
+			lightOn: true
+		},
+		{
+			label: "Purple",
+			hex: "#ff00ff",
+			lightOn: true
+		},
+		{
+			label: "Off",
+			hex: "#ff00ff",
+			lightOn: false
+		}
+	].map((frame) => Object.freeze(frame)));
+	//#endregion
+	//#region src/wifi-light.mjs
+	var DEFAULT_DEVICE_URL = "http://192.168.4.1";
+	function normalizeDeviceUrl(value) {
+		if (typeof value !== "string" || !value.trim()) throw new Error("Enter the board address, for example http://192.168.4.1.");
+		let url;
+		try {
+			url = new URL(value.trim().includes("://") ? value.trim() : `http://${value.trim()}`);
+		} catch {
+			throw new Error("Enter a valid local board address.");
+		}
+		if (url.protocol !== "http:" || url.username || url.password || url.pathname !== "/" || url.search || url.hash) throw new Error("Use a local HTTP address without a path, password or query.");
+		const parts = url.hostname.split(".").map(Number);
+		const ipv4 = /^\d+\.\d+\.\d+\.\d+$/.test(url.hostname) && parts.every((part) => Number.isInteger(part) && part >= 0 && part <= 255);
+		if (!(url.hostname === "localhost" || ipv4 && (parts[0] === 127 || parts[0] === 10 || parts[0] === 192 && parts[1] === 168 || parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31))) throw new Error("Use the board’s private Wi-Fi IP address.");
+		return url.origin;
+	}
+	function normalizeCommand(command) {
+		const colour = normalizeHex(command?.colour);
+		if (!colour || typeof command?.brightness !== "number" || !Number.isFinite(command.brightness) || command.brightness < 0 || command.brightness > 100 || typeof command?.lightOn !== "boolean") throw new Error("Invalid colour, brightness or light power.");
+		return {
+			colour,
+			brightness: Math.round(command.brightness),
+			lightOn: command.lightOn
+		};
+	}
+	var keyOf = (command) => `${command.colour}/${command.brightness}/${command.lightOn}`;
+	var integer = (value, max) => Number.isInteger(value) && value >= 0 && value <= max;
+	var validRgb = (value) => value && [
+		"r",
+		"g",
+		"b"
+	].every((channel) => integer(value[channel], 255));
+	var wireCommand = (command) => {
+		const output = getLightOutput(command.colour, command.brightness, command.lightOn);
+		const off = !output.r && !output.g && !output.b;
+		return {
+			output: {
+				r: output.r,
+				g: output.g,
+				b: output.b
+			},
+			hex: output.hex.slice(1),
+			action: off ? "off" : "set",
+			acknowledgement: off ? "OFF" : "OK"
+		};
+	};
+	var wireKey = (command) => {
+		const wire = wireCommand(command);
+		return `${wire.action}/${wire.hex}`;
+	};
+	function validateStatus(data) {
+		if (data?.device !== "gallery-echoes-nano-esp32" || data?.protocol !== 2) throw new Error("This address is not running the Gallery Echoes Nano ESP32 firmware.");
+		if (typeof data.firmware !== "string" || !data.firmware || data.firmware.length > 64 || !integer(data.revision, 4294967295) || !integer(data.seq, 2147483647) || !validRgb(data.output) || ![
+			"boot",
+			"set",
+			"off"
+		].includes(data.lastCommand)) throw new Error("The board returned an invalid status.");
+		return {
+			device: data.device,
+			protocol: data.protocol,
+			firmware: data.firmware,
+			revision: data.revision,
+			seq: data.seq,
+			lastCommand: data.lastCommand,
+			output: { ...data.output },
+			mode: "status"
+		};
+	}
+	function validateLegacyPage(html) {
+		const markup = html.replace(/<!--[\s\S]*?-->/g, "").replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "");
+		const hasPicker = (markup.match(/<input\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi) || []).some((input) => {
+			const attributes = /* @__PURE__ */ new Map();
+			for (const match of input.slice(6, -1).matchAll(/\s+([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)) {
+				const name = match[1].toLowerCase();
+				if (attributes.has(name) && ["id", "type"].includes(name)) return false;
+				attributes.set(name, match[2] ?? match[3] ?? match[4] ?? "");
+			}
+			return attributes.get("id") === "picker" && attributes.get("type")?.toLowerCase() === "color";
+		});
+		if (!/<title>\s*Gallery Echoes\s*<\/title>/i.test(markup) || !hasPicker) throw new Error("This address does not show the existing Gallery Echoes colour controller.");
+		return {
+			device: "gallery-echoes-legacy",
+			protocol: 0,
+			mode: "legacy",
+			verification: "page-identified"
+		};
+	}
+	function cancelled() {
+		const error = /* @__PURE__ */ new Error("Connection cancelled.");
+		error.name = "AbortError";
+		return error;
+	}
+	function createWifiLightController({ fetchImpl = globalThis.fetch, onChange = () => {}, timeoutMs = 3e3, throttleMs = 100, heartbeatMs = 5e3 } = {}) {
+		const timeout = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 3e3;
+		const throttle = Number.isFinite(throttleMs) && throttleMs >= 0 ? throttleMs : 100;
+		const heartbeat = Number.isFinite(heartbeatMs) && heartbeatMs >= 0 ? heartbeatMs : 5e3;
+		let snapshot = {
+			status: "disconnected",
+			endpoint: DEFAULT_DEVICE_URL,
+			mode: null,
+			device: null,
+			lastApplied: null,
+			lastSeenAt: null,
+			error: null
+		};
+		let epoch = 0, active = false, ready = false, busy = false, disposed = false;
+		let pending = null, sendTimer = null, heartbeatTimer = null, initialWaiter = null;
+		let sequence = 0, lastStartedAt = -Infinity;
+		const requests = /* @__PURE__ */ new Set();
+		const current = (token) => !disposed && active && token === epoch;
+		const publish = (changes) => {
+			snapshot = {
+				...snapshot,
+				...changes
+			};
+			onChange(snapshot);
+		};
+		const clearSession = () => {
+			epoch += 1;
+			active = false;
+			ready = false;
+			busy = false;
+			pending = null;
+			clearTimeout(sendTimer);
+			clearTimeout(heartbeatTimer);
+			sendTimer = heartbeatTimer = null;
+			for (const controller of requests) controller.abort();
+			requests.clear();
+			if (initialWaiter) {
+				initialWaiter.reject(cancelled());
+				initialWaiter = null;
+			}
+		};
+		const fail = (token, error) => {
+			if (!current(token)) return;
+			const waiter = initialWaiter;
+			initialWaiter = null;
+			clearSession();
+			publish({
+				status: "error",
+				error: error.message || "The board did not respond. Reconnect to try again."
+			});
+			waiter?.reject(error);
+		};
+		async function request(token, path, { parser = "status", allowNotFound = false, ...options } = {}) {
+			if (!current(token)) throw cancelled();
+			const controller = new AbortController();
+			requests.add(controller);
+			let deadline, onAbort;
+			const abort = new Promise((_, reject) => {
+				onAbort = () => reject(cancelled());
+				controller.signal.addEventListener("abort", onAbort, { once: true });
+			});
+			const expiry = new Promise((_, reject) => {
+				deadline = setTimeout(() => {
+					reject(/* @__PURE__ */ new Error("The board timed out. Check its Wi-Fi and reconnect."));
+					controller.abort();
+				}, timeout);
+			});
+			try {
+				const work = (async () => {
+					if (typeof fetchImpl !== "function") throw new Error("This browser cannot send Wi-Fi requests.");
+					const response = await fetchImpl(`${snapshot.endpoint}${path}`, {
+						...options,
+						signal: controller.signal,
+						mode: "cors",
+						credentials: "omit",
+						cache: "no-store",
+						redirect: "error"
+					});
+					if (allowNotFound && response.status === 404) return null;
+					if (!response.ok) throw new Error(`The board rejected the request (HTTP ${response.status}).`);
+					if (parser !== "status") {
+						const text = await response.text();
+						return parser === "page" ? validateLegacyPage(text) : text.trim();
+					}
+					let data;
+					try {
+						data = await response.json();
+					} catch {
+						throw new Error("The board did not return a valid JSON acknowledgement.");
+					}
+					return validateStatus(data);
+				})();
+				const data = await Promise.race([
+					work,
+					expiry,
+					abort
+				]);
+				if (!current(token)) throw cancelled();
+				return data;
+			} catch (error) {
+				if (error?.name === "TypeError") throw new Error("Board unreachable. Check Wi-Fi, the IP address and browser local network permission.");
+				throw error;
+			} finally {
+				clearTimeout(deadline);
+				controller.signal.removeEventListener("abort", onAbort);
+				requests.delete(controller);
+			}
+		}
+		function planHeartbeat(token) {
+			clearTimeout(heartbeatTimer);
+			if (!current(token) || !heartbeat) return;
+			heartbeatTimer = setTimeout(async () => {
+				heartbeatTimer = null;
+				if (!current(token)) return;
+				if (busy || pending) {
+					planHeartbeat(token);
+					return;
+				}
+				busy = true;
+				try {
+					const device = snapshot.mode === "legacy" ? await request(token, "/", { parser: "page" }) : await request(token, "/status");
+					if (!current(token)) return;
+					busy = false;
+					publish({
+						device,
+						lastSeenAt: Date.now()
+					});
+					schedule(token);
+					planHeartbeat(token);
+				} catch (error) {
+					fail(token, error);
+				}
+			}, heartbeat);
+		}
+		function schedule(token) {
+			if (!current(token) || !ready || busy || sendTimer !== null || !pending) return;
+			const knownWire = snapshot.mode === "status" && snapshot.device ? `${snapshot.device.lastCommand}/${rgbToHex(snapshot.device.output).slice(1)}` : snapshot.lastApplied ? wireKey(snapshot.lastApplied) : null;
+			if (snapshot.lastApplied && wireKey(pending) === knownWire) {
+				pending = null;
+				publish({ status: "connected" });
+				return;
+			}
+			sendTimer = setTimeout(() => {
+				sendTimer = null;
+				sendLatest(token);
+			}, Math.max(0, throttle - (Date.now() - lastStartedAt)));
+		}
+		async function sendLatest(token) {
+			if (!current(token) || busy || !pending) return;
+			const command = pending;
+			pending = null;
+			busy = true;
+			lastStartedAt = Date.now();
+			const wire = wireCommand(command);
+			sequence = sequence >= 2147483647 ? 1 : sequence + 1;
+			const seq = sequence;
+			publish({
+				status: "sending",
+				error: null
+			});
+			if (!current(token)) return;
+			try {
+				const acknowledgement = await request(token, wire.action === "off" ? `/off?seq=${seq}` : `/set?hex=${wire.hex}&seq=${seq}`, { parser: "text" });
+				if (!current(token)) return;
+				if (acknowledgement !== wire.acknowledgement) throw new Error(`The board did not acknowledge the request with ${wire.acknowledgement}.`);
+				let device = snapshot.device;
+				if (snapshot.mode === "status") {
+					device = await request(token, "/status");
+					if (!current(token)) return;
+					if (device.seq !== seq || device.lastCommand !== wire.action || [
+						"r",
+						"g",
+						"b"
+					].some((channel) => device.output[channel] !== wire.output[channel])) throw new Error("The board status does not match the colour sent. Reconnect to try again.");
+				}
+				const confirmed = snapshot.mode === "status";
+				const lastApplied = {
+					...command,
+					output: wire.output,
+					seq,
+					revision: confirmed ? device.revision : null,
+					at: Date.now(),
+					acknowledgement,
+					verification: confirmed ? "state-confirmed" : "request-acknowledged",
+					source: confirmed ? "status" : "text"
+				};
+				busy = false;
+				if (pending && keyOf(pending) === keyOf(command)) pending = null;
+				publish({
+					status: pending ? "sending" : "connected",
+					device,
+					lastApplied,
+					lastSeenAt: lastApplied.at
+				});
+				if (initialWaiter?.token === token) {
+					initialWaiter.resolve(lastApplied);
+					initialWaiter = null;
+				}
+				schedule(token);
+				planHeartbeat(token);
+			} catch (error) {
+				fail(token, error);
+			}
+		}
+		return {
+			getSnapshot: () => snapshot,
+			async connect(endpoint, command) {
+				if (disposed) throw new Error("This connection has been closed.");
+				clearSession();
+				let address, initial;
+				try {
+					address = normalizeDeviceUrl(endpoint);
+					initial = normalizeCommand(command);
+				} catch (error) {
+					publish({
+						status: "error",
+						mode: null,
+						device: null,
+						lastApplied: null,
+						lastSeenAt: null,
+						error: error.message
+					});
+					throw error;
+				}
+				active = true;
+				ready = false;
+				pending = initial;
+				sequence = 0;
+				lastStartedAt = -Infinity;
+				const token = epoch;
+				publish({
+					status: "connecting",
+					endpoint: address,
+					mode: null,
+					device: null,
+					lastApplied: null,
+					lastSeenAt: null,
+					error: null
+				});
+				try {
+					let device = await request(token, "/status", { allowNotFound: true });
+					if (device === null) device = await request(token, "/", { parser: "page" });
+					if (!current(token)) throw cancelled();
+					ready = true;
+					publish({
+						device,
+						mode: device.mode,
+						lastSeenAt: Date.now()
+					});
+					if (!current(token)) throw cancelled();
+					return await new Promise((resolve, reject) => {
+						initialWaiter = {
+							token,
+							resolve,
+							reject
+						};
+						schedule(token);
+					});
+				} catch (error) {
+					fail(token, error);
+					throw error;
+				}
+			},
+			setLight(command) {
+				if (!active || disposed) return false;
+				pending = normalizeCommand(command);
+				schedule(epoch);
+				return true;
+			},
+			disconnect() {
+				clearSession();
+				if (!disposed) publish({
+					status: "disconnected",
+					mode: null,
+					device: null,
+					error: null
+				});
+			},
+			dispose() {
+				clearSession();
+				disposed = true;
+			}
+		};
+	}
 	//#endregion
 	//#region node_modules/react/cjs/react-jsx-runtime.production.js
 	/**
@@ -11450,14 +11975,857 @@
 		exports.jsxs = jsxProd;
 	}));
 	//#endregion
-	//#region src/Wristband.jsx
+	//#region src/WristbandModel.jsx
 	var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_react_jsx_runtime_production();
 	})))();
+	function WristbandModel() {
+		const id = (0, import_react.useId)().replace(/[^a-zA-Z0-9_-]/g, "");
+		const ref = (name) => `url(#${id}-${name})`;
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", {
+			className: "wb-model",
+			viewBox: "24 14 312 206",
+			preserveAspectRatio: "xMidYMid meet",
+			"aria-hidden": "true",
+			focusable: "false",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("defs", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("linearGradient", {
+						id: `${id}-top`,
+						x1: "86",
+						y1: "36",
+						x2: "254",
+						y2: "167",
+						gradientUnits: "userSpaceOnUse",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", { stopColor: "#fffdf8" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+								offset: ".48",
+								stopColor: "#f0e9de"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								stopColor: "#e2d8c9"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("linearGradient", {
+						id: `${id}-front`,
+						x1: "180",
+						y1: "107",
+						x2: "180",
+						y2: "188",
+						gradientUnits: "userSpaceOnUse",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", { stopColor: "#e9e0d2" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+								offset: ".45",
+								stopColor: "#d7cbb9"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								stopColor: "#c6b9a5"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("linearGradient", {
+						id: `${id}-inside`,
+						x1: "180",
+						y1: "59",
+						x2: "180",
+						y2: "107",
+						gradientUnits: "userSpaceOnUse",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", { stopColor: "#b6a995" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+								offset: ".55",
+								stopColor: "#d9cebe"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								stopColor: "#eee7dc"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("linearGradient", {
+						id: `${id}-rim`,
+						x1: "180",
+						y1: "37",
+						x2: "180",
+						y2: "166",
+						gradientUnits: "userSpaceOnUse",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+							stopColor: "#ffffff",
+							stopOpacity: ".95"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("stop", {
+							offset: "1",
+							stopColor: "#fff9ec",
+							stopOpacity: ".3"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("filter", {
+						id: `${id}-shadow`,
+						x: "-30%",
+						y: "-100%",
+						width: "160%",
+						height: "300%",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("feGaussianBlur", { stdDeviation: "5" })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("filter", {
+						id: `${id}-light`,
+						x: "-30%",
+						y: "-150%",
+						width: "160%",
+						height: "400%",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("feGaussianBlur", { stdDeviation: "3" })
+					})
+				] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ellipse", {
+					cx: "183",
+					cy: "197",
+					rx: "109",
+					ry: "9",
+					fill: "#6b5942",
+					opacity: ".12",
+					filter: ref("shadow")
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("g", {
+					transform: "rotate(-10 180 110)",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M69 100 C69 77 119 60 180 60 C241 60 291 77 291 100 L286 112 C279 92 235 80 180 80 C125 80 81 92 74 112 Z",
+							fill: ref("inside")
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M44 100 C44 136 105 165 180 165 C255 165 316 136 316 100 L316 121 C316 157 255 186 180 186 C105 186 44 157 44 121 Z",
+							fill: ref("front"),
+							stroke: "#bfb19d",
+							strokeOpacity: ".35",
+							strokeWidth: ".7"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M316 100 C316 136 255 165 180 165 C105 165 44 136 44 100 C44 64 105 35 180 35 C255 35 316 64 316 100 Z M291 100 C291 77 241 60 180 60 C119 60 69 77 69 100 C69 124 119 144 180 144 C241 144 291 124 291 100 Z",
+							fill: ref("top"),
+							fillRule: "evenodd"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M45 100 C45 65 106 36 180 36 C254 36 315 65 315 100",
+							fill: "none",
+							stroke: ref("rim"),
+							strokeWidth: "1.8"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M70 100 C70 124 120 144 180 144 C240 144 290 124 290 100",
+							fill: "none",
+							stroke: "#fffdf7",
+							strokeOpacity: ".75",
+							strokeWidth: "1.2"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M49 124 C61 157 113 182 180 182 C247 182 299 157 311 124",
+							fill: "none",
+							stroke: "#a89982",
+							strokeOpacity: ".22",
+							strokeWidth: "1"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M278 57 L290 67 M293 70 L284 84",
+							fill: "none",
+							stroke: "#c7bba9",
+							strokeOpacity: ".65",
+							strokeWidth: "1",
+							strokeLinecap: "round"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("text", {
+							x: "83",
+							y: "151",
+							transform: "rotate(20 83 151)",
+							fill: "#958772",
+							fontFamily: "Georgia, serif",
+							fontSize: "6.5",
+							letterSpacing: ".5",
+							children: "echoes"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							d: "M120 168 Q180 186 240 168",
+							fill: "none",
+							stroke: "#b5a995",
+							strokeWidth: "13",
+							strokeLinecap: "round",
+							opacity: ".55"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							className: "wb-model-led-glow",
+							d: "M122 169 Q180 187 238 169",
+							fill: "none",
+							strokeWidth: "15",
+							strokeLinecap: "round",
+							filter: ref("light")
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							className: "wb-model-led",
+							d: "M122 169 Q180 187 238 169",
+							fill: "none",
+							strokeWidth: "8",
+							strokeLinecap: "round"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+							className: "wb-model-led-highlight",
+							d: "M125 167.5 Q180 184 235 167.5",
+							fill: "none",
+							strokeWidth: "1.2",
+							strokeLinecap: "round"
+						})
+					]
+				})
+			]
+		});
+	}
+	//#endregion
+	//#region src/WristbandColourStudio.jsx
+	var COMMON_COLOURS = [
+		["Soft blue", "#91bdd8"],
+		["Lavender", "#c1abe5"],
+		["Peach", "#e8af90"],
+		["Sage", "#b0c9a1"],
+		["Red", "#ff0000"],
+		["Green", "#00ff00"],
+		["White", "#ffffff"],
+		["Black", "#000000"]
+	];
+	var clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+	function WifiLightConnection() {
+		const { wifiEndpoint, setWifiEndpoint, wifiConnection, wifiConnected, connectBoard, disconnectBoard } = useWristband();
+		const [addressError, setAddressError] = (0, import_react.useState)("");
+		const [connectionError, setConnectionError] = (0, import_react.useState)("");
+		const ids = (0, import_react.useId)();
+		const connecting = wifiConnection.status === "connecting" || ["sending", "connected"].includes(wifiConnection.status) && !wifiConnected;
+		const stateLabel = wifiConnected ? wifiConnection.status === "sending" ? "Sending…" : "Connected" : connecting ? "Connecting…" : wifiConnection.status === "error" ? "Connection stopped" : "Disconnected";
+		const last = wifiConnection.lastApplied;
+		const stateConfirmed = last?.verification === "state-confirmed";
+		const acknowledgementLabel = stateConfirmed ? "Last confirmed" : "Last acknowledged request";
+		const confirmedHex = last ? "#" + [
+			last.output.r,
+			last.output.g,
+			last.output.b
+		].map((value) => value.toString(16).padStart(2, "0")).join("").toUpperCase() : "";
+		const confirmedTime = last ? new Date(last.at) : null;
+		const error = wifiConnection.error || connectionError;
+		const message = wifiConnected ? stateConfirmed ? "Board linked. Firmware state confirms the last command; colour changes send automatically." : "Board linked. Colour requests receive OK/OFF replies. Physical light output is not verified." : connecting ? "Waiting for the board. Your screen preview stays available." : wifiConnection.status === "error" ? "Preview only. Sending has stopped. Reconnect to try again." : last ? "Preview only. Disconnected; sending has stopped." : "Preview only. Join the board Wi-Fi, then connect when its compatible firmware is ready.";
+		const connect = async (event) => {
+			event.preventDefault();
+			if (connecting || wifiConnected) return;
+			let endpoint;
+			try {
+				endpoint = normalizeDeviceUrl(wifiEndpoint);
+			} catch (reason) {
+				setAddressError(reason.message);
+				return;
+			}
+			setAddressError("");
+			setConnectionError("");
+			try {
+				await connectBoard(endpoint);
+			} catch (reason) {
+				setConnectionError(reason.message || "The board did not respond. Check its Wi-Fi and reconnect.");
+			}
+		};
+		const disconnect = () => {
+			setConnectionError("");
+			setAddressError("");
+			disconnectBoard();
+		};
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "wb-wifi-connection",
+			"data-connection-status": wifiConnection.status,
+			"aria-labelledby": `${ids}-title`,
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "wb-wifi-heading",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "ARDUINO NANO ESP32" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+						id: `${ids}-title`,
+						children: "Wi-Fi light control"
+					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "wb-wifi-state",
+						"data-linked": wifiConnected ? "true" : "false",
+						children: stateLabel
+					})]
+				}),
+				!wifiConnected && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "wb-wifi-setup",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
+						"Keep your existing ",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: "/set" }),
+						" and ",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: "/off" }),
+						" controls. For Go Live access, upload this project's compatible version by USB."
+					] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
+						"Join ",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "GalleryEchoes" }),
+						" in your system Wi-Fi.",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: "No password" })
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "The compatible version allows cross-origin requests from Go Live. This page cannot switch your system Wi-Fi." })]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					className: "wb-wifi-form",
+					onSubmit: connect,
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							htmlFor: `${ids}-address`,
+							children: "Board address"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							id: `${ids}-address`,
+							type: "text",
+							inputMode: "url",
+							autoComplete: "off",
+							spellCheck: false,
+							value: wifiEndpoint,
+							disabled: connecting || wifiConnected,
+							"aria-invalid": !!addressError,
+							"aria-describedby": `${ids}-address-help${addressError ? ` ${ids}-address-error` : ""}`,
+							onChange: (event) => {
+								setWifiEndpoint(event.target.value);
+								setAddressError("");
+								setConnectionError("");
+							}
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							id: `${ids}-address-help`,
+							children: "Local HTTP address · default 192.168.4.1"
+						}),
+						addressError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "wb-studio-error",
+							id: `${ids}-address-error`,
+							role: "alert",
+							children: addressError
+						}),
+						wifiConnected || connecting ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: "wb-wifi-disconnect",
+							onClick: disconnect,
+							children: connecting ? "Cancel connection" : "Disconnect"
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "submit",
+							className: "wb-wifi-connect",
+							children: [wifiConnection.status === "error" ? "Reconnect" : "Connect to board", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: "↗"
+							})]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "wb-wifi-message",
+					role: "status",
+					"aria-live": "polite",
+					children: message
+				}),
+				error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "wb-wifi-error",
+					role: "alert",
+					children: error
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "wb-wifi-confirmed",
+					"data-verification": last?.verification || "none",
+					children: last ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "wb-wifi-confirmed-swatch",
+						style: { backgroundColor: confirmedHex },
+						"aria-hidden": "true"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [
+							acknowledgementLabel,
+							" · ",
+							confirmedHex
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("time", {
+								dateTime: confirmedTime.toISOString(),
+								children: confirmedTime.toLocaleTimeString([], {
+									hour: "2-digit",
+									minute: "2-digit",
+									second: "2-digit"
+								})
+							}),
+							" · ",
+							last.brightness,
+							"% requested · ",
+							last.lightOn ? "power requested on" : "power requested off"
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+							"Selected ",
+							last.colour.toUpperCase(),
+							" · ",
+							stateConfirmed ? "firmware state reported" : `request acknowledged: ${last.acknowledgement || (last.lightOn ? "OK" : "OFF")}`
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: stateConfirmed ? "Reported firmware state; emitted light is not measured." : "OK/OFF acknowledges the request, not the measured light output." })
+					] })] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "No colour command has been acknowledged by a board." })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "wb-wifi-footnote",
+					children: "Disconnect stops new commands; it does not switch the board off. Screen colours and vibration previews remain available."
+				})
+			]
+		});
+	}
+	function WristbandColourStudio() {
+		const { activeColour, customColour, setCustomColour, brightness, setBrightness, lightOn, setLightOn, lightLabel, lightOutput, lightActive, feeling, setFeeling, quietMode, reducedMotion, demoRunning, demoStep, startColourDemo, stopColourDemo, wifiConnected, wifiConnection } = useWristband();
+		const [hsv, setHsv] = (0, import_react.useState)(() => hexToHsv(activeColour));
+		const [hexDraft, setHexDraft] = (0, import_react.useState)(activeColour.toUpperCase());
+		const [hexError, setHexError] = (0, import_react.useState)("");
+		const [dragging, setDragging] = (0, import_react.useState)(false);
+		const hsvRef = (0, import_react.useRef)(hsv);
+		const lastApplied = (0, import_react.useRef)(activeColour);
+		const fieldRef = (0, import_react.useRef)(null);
+		const pointerRef = (0, import_react.useRef)(null);
+		const hexFocused = (0, import_react.useRef)(false);
+		const ids = (0, import_react.useId)();
+		hsvRef.current = hsv;
+		(0, import_react.useEffect)(() => {
+			if (activeColour !== lastApplied.current) {
+				const next = hexToHsv(activeColour);
+				setHsv((current) => ({
+					...next,
+					h: next.s === 0 ? current.h : next.h,
+					s: next.v === 0 ? current.s : next.s
+				}));
+				lastApplied.current = activeColour;
+			}
+			if (!hexFocused.current) {
+				setHexDraft(activeColour.toUpperCase());
+				setHexError("");
+			}
+		}, [activeColour]);
+		(0, import_react.useEffect)(() => () => {
+			stopColourDemo(ids);
+		}, [stopColourDemo, ids]);
+		const applyHsv = (next) => {
+			const bounded = {
+				h: (next.h % 360 + 360) % 360,
+				s: clamp(next.s, 0, 100),
+				v: clamp(next.v, 0, 100)
+			};
+			const hex = hsvToHex(bounded);
+			hsvRef.current = bounded;
+			setHsv(bounded);
+			lastApplied.current = hex;
+			setCustomColour(hex);
+			setHexError("");
+			if (!hexFocused.current) setHexDraft(hex.toUpperCase());
+		};
+		const applyColour = (value) => {
+			const hex = normalizeHex(value);
+			if (!hex) return false;
+			const next = hexToHsv(hex);
+			const current = hsvRef.current;
+			const preserved = {
+				...next,
+				h: next.s === 0 ? current.h : next.h,
+				s: next.v === 0 ? current.s : next.s
+			};
+			hsvRef.current = preserved;
+			setHsv(preserved);
+			lastApplied.current = hex;
+			setCustomColour(hex);
+			setHexError("");
+			return true;
+		};
+		const commitHex = () => {
+			const hex = normalizeHex(hexDraft);
+			if (!hex) {
+				setHexError("Enter 3 or 6 hexadecimal digits, for example #91BDD8.");
+				return;
+			}
+			applyColour(hex);
+			setHexDraft(hex.toUpperCase());
+		};
+		const updateFromPointer = (event) => {
+			const bounds = fieldRef.current?.getBoundingClientRect();
+			if (!bounds || !bounds.width || !bounds.height) return;
+			applyHsv({
+				...hsvRef.current,
+				s: clamp((event.clientX - bounds.left) / bounds.width * 100, 0, 100),
+				v: clamp(100 - (event.clientY - bounds.top) / bounds.height * 100, 0, 100)
+			});
+		};
+		const finishPointer = (event) => {
+			if (pointerRef.current !== event.pointerId) return;
+			pointerRef.current = null;
+			setDragging(false);
+			if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+		};
+		const cycleBlocked = quietMode || reducedMotion;
+		const blockedReason = quietMode ? "Quiet mode keeps automatic colour changes off. You can still adjust colours by hand." : reducedMotion ? "Reduced motion keeps automatic colour changes off. You can still adjust colours by hand." : "";
+		const statusMessage = demoRunning ? `Arduino sequence running. One step each second. ${wifiConnected ? "Sending colours over Wi-Fi." : "Preview only."}` : !lightOn ? "Light off in preview. Your chosen colour is kept for next time." : !lightActive ? "No light output. Raise brightness or choose a lighter colour." : `${wifiConnected ? "Wi-Fi light controls active" : "Preview only"}. ${brightness}% brightness.`;
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "wb-colour-studio",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "wb-studio-preview",
+					"aria-label": "Device light preview",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "wb-studio-preview-top",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", { "aria-hidden": "true" }), wifiConnected ? "Board linked" : "Preview only"] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: demoRunning ? "Sequence running" : lightOn && lightActive ? "Light on" : "No light output" })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandPreview, { interactive: false }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "wb-studio-output",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "wb-studio-output-swatch",
+								style: { backgroundColor: lightOutput.hex },
+								"aria-hidden": "true"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: lightLabel }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+								"RGB ",
+								lightOutput.r,
+								", ",
+								lightOutput.g,
+								", ",
+								lightOutput.b,
+								" · ",
+								wifiConnected ? wifiConnection.status === "sending" ? "sending to board" : "Wi-Fi controls active" : "screen preview"
+							] })] })]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WifiLightConnection, {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "wb-studio-palette",
+					"aria-labelledby": `${ids}-field-title`,
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "wb-studio-section-heading",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+								id: `${ids}-field-title`,
+								children: "Colour field"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: activeColour.toUpperCase() })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: `wb-studio-colour-field${dragging ? " is-dragging" : ""}`,
+							ref: fieldRef,
+							tabIndex: 0,
+							role: "group",
+							"aria-roledescription": "two-dimensional colour control",
+							"aria-label": `Colour field. Saturation ${Math.round(hsv.s)} percent. Value ${Math.round(hsv.v)} percent.`,
+							"aria-describedby": `${ids}-field-help`,
+							style: { "--wb-studio-hue": hsvToHex({
+								h: hsv.h,
+								s: 100,
+								v: 100
+							}) },
+							onPointerDown: (event) => {
+								if (pointerRef.current !== null || event.pointerType === "mouse" && event.button !== 0) return;
+								event.preventDefault();
+								event.currentTarget.focus({ preventScroll: true });
+								pointerRef.current = event.pointerId;
+								event.currentTarget.setPointerCapture(event.pointerId);
+								setDragging(true);
+								updateFromPointer(event);
+							},
+							onPointerMove: (event) => {
+								if (pointerRef.current === event.pointerId) {
+									event.preventDefault();
+									updateFromPointer(event);
+								}
+							},
+							onPointerUp: finishPointer,
+							onPointerCancel: finishPointer,
+							onLostPointerCapture: (event) => {
+								if (pointerRef.current === event.pointerId) {
+									pointerRef.current = null;
+									setDragging(false);
+								}
+							},
+							onKeyDown: (event) => {
+								if (![
+									"ArrowLeft",
+									"ArrowRight",
+									"ArrowUp",
+									"ArrowDown",
+									"Home",
+									"End"
+								].includes(event.key)) return;
+								event.preventDefault();
+								const amount = event.shiftKey ? 10 : 1;
+								const next = { ...hsvRef.current };
+								if (event.key === "ArrowLeft") next.s -= amount;
+								if (event.key === "ArrowRight") next.s += amount;
+								if (event.key === "ArrowUp") next.v += amount;
+								if (event.key === "ArrowDown") next.v -= amount;
+								if (event.key === "Home") next.s = 0;
+								if (event.key === "End") next.s = 100;
+								applyHsv(next);
+							},
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "wb-studio-field-thumb",
+								style: {
+									left: `${hsv.s}%`,
+									top: `${100 - hsv.v}%`,
+									backgroundColor: hsvToHex(hsv)
+								},
+								"aria-hidden": "true"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "wb-studio-help",
+							id: `${ids}-field-help`,
+							children: "Drag to choose · ← → saturation · ↑ ↓ value · Shift for larger steps"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+							className: "wb-studio-range-label",
+							htmlFor: `${ids}-hue`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Hue" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("output", { children: [Math.round(hsv.h), "°"] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "wb-studio-range wb-studio-hue-range",
+							id: `${ids}-hue`,
+							type: "range",
+							min: "0",
+							max: "359",
+							step: "1",
+							value: Math.min(359, Math.round(hsv.h)),
+							"aria-valuetext": `${Math.round(hsv.h)} degrees hue`,
+							onChange: (event) => applyHsv({
+								...hsvRef.current,
+								h: Number(event.target.value)
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "wb-studio-inputs",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+								className: "wb-studio-hex-form",
+								onSubmit: (event) => {
+									event.preventDefault();
+									commitHex();
+								},
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									htmlFor: `${ids}-hex`,
+									children: "HEX colour"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: `${ids}-hex`,
+									type: "text",
+									value: hexDraft,
+									maxLength: 7,
+									autoComplete: "off",
+									autoCapitalize: "characters",
+									spellCheck: false,
+									"aria-invalid": !!hexError,
+									"aria-describedby": hexError ? `${ids}-hex-error` : void 0,
+									onFocus: () => {
+										hexFocused.current = true;
+									},
+									onBlur: () => {
+										hexFocused.current = false;
+										commitHex();
+									},
+									onChange: (event) => {
+										const next = event.target.value;
+										setHexDraft(next);
+										setHexError("");
+										if (/^#?[0-9a-f]{6}$/i.test(next.trim())) applyColour(next);
+									}
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									type: "submit",
+									"aria-label": "Apply HEX colour",
+									children: "↗"
+								})] })]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+								className: "wb-studio-native-colour",
+								htmlFor: `${ids}-native`,
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "System picker" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: `${ids}-native`,
+									type: "color",
+									value: activeColour,
+									"aria-label": "Open system colour picker",
+									onChange: (event) => {
+										applyColour(event.target.value);
+										setHexDraft(event.target.value.toUpperCase());
+									}
+								})]
+							})]
+						}),
+						hexError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "wb-studio-error",
+							id: `${ids}-hex-error`,
+							role: "alert",
+							children: hexError
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("details", {
+							className: "wb-studio-fine-tune",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("summary", { children: "Fine-tune saturation and value" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+									className: "wb-studio-range-label",
+									htmlFor: `${ids}-saturation`,
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Saturation" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("output", { children: [Math.round(hsv.s), "%"] })]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									className: "wb-studio-range",
+									id: `${ids}-saturation`,
+									type: "range",
+									min: "0",
+									max: "100",
+									value: Math.round(hsv.s),
+									onChange: (event) => applyHsv({
+										...hsvRef.current,
+										s: Number(event.target.value)
+									})
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+									className: "wb-studio-range-label",
+									htmlFor: `${ids}-value`,
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Colour value" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("output", { children: [Math.round(hsv.v), "%"] })]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									className: "wb-studio-range",
+									id: `${ids}-value`,
+									type: "range",
+									min: "0",
+									max: "100",
+									value: Math.round(hsv.v),
+									onChange: (event) => applyHsv({
+										...hsvRef.current,
+										v: Number(event.target.value)
+									})
+								})
+							] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+							className: "wb-studio-subtitle",
+							children: "A few colours to begin"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "wb-studio-common-colours",
+							role: "group",
+							"aria-label": "Common light colours",
+							children: COMMON_COLOURS.map(([name, hex]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								type: "button",
+								"aria-label": `${name}. ${hex.toUpperCase()}`,
+								"aria-pressed": !demoRunning && customColour === hex,
+								onClick: () => {
+									applyColour(hex);
+									setHexDraft(hex.toUpperCase());
+								},
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									style: { backgroundColor: hex },
+									"aria-hidden": "true",
+									children: !demoRunning && customColour === hex ? "✓" : ""
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: name })]
+							}, hex))
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "wb-studio-light-controls",
+					"aria-label": "Light output controls",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "wb-studio-power-row",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "Light power" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: lightOn ? "Turn off without losing your colour." : "Your colour is kept while the light is off." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: "wb-preference-switch",
+								type: "button",
+								role: "switch",
+								"aria-label": "Light power",
+								"aria-checked": lightOn,
+								onClick: () => setLightOn((current) => !current),
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+							className: "wb-studio-range-label",
+							htmlFor: `${ids}-brightness`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Brightness" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("output", { children: [brightness, "%"] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "wb-studio-range",
+							id: `${ids}-brightness`,
+							type: "range",
+							min: "0",
+							max: "100",
+							step: "1",
+							value: brightness,
+							"aria-valuetext": `${brightness} percent brightness`,
+							onChange: (event) => setBrightness(Number(event.target.value))
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "wb-studio-help",
+							children: "Changing a colour turns this preview on. Brightness stays at your chosen level."
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "wb-studio-reset",
+							type: "button",
+							onClick: () => setFeeling(feeling),
+							children: ["Use my feeling colour ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: "↗"
+							})]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "wb-studio-demo",
+					"aria-labelledby": `${ids}-demo-title`,
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "wb-studio-section-heading",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+								id: `${ids}-demo-title`,
+								children: "Arduino sequence"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "1 second per step" })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "wb-studio-demo-frames",
+							"aria-label": "Red, green, blue, yellow, purple, then off",
+							children: ARDUINO_DEMO_FRAMES.map((frame, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: demoRunning && demoStep?.index === index ? "is-current" : "",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {
+									style: { backgroundColor: frame.lightOn ? frame.hex : "#d7d2c7" },
+									"aria-hidden": "true"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: frame.label })]
+							}, frame.label))
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "wb-studio-demo-button",
+							type: "button",
+							disabled: !demoRunning && cycleBlocked,
+							"aria-pressed": demoRunning,
+							onClick: () => demoRunning ? stopColourDemo() : startColourDemo(ids),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: demoRunning ? "■" : "▷"
+							}), demoRunning ? "Stop sequence" : "Start sequence"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "wb-studio-help",
+							children: blockedReason || "Red → green → blue → yellow → purple → off. Stop restores your light. Manual controls stop the sequence."
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "wb-studio-status",
+					role: "status",
+					"aria-live": "polite",
+					children: statusMessage
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "wb-studio-hardware-note",
+					children: [
+						wifiConnected ? wifiConnection.lastApplied?.verification === "state-confirmed" ? "Nano ESP32 linked over Wi-Fi. The card above reports the last firmware-confirmed state." : "Nano ESP32 linked over Wi-Fi. The card above shows the last OK/OFF request acknowledgement." : "Preview only until you explicitly connect your Nano ESP32 over Wi-Fi.",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+						"Vibration is a screen preview. Emitted LED light is not measured."
+					]
+				})
+			]
+		});
+	}
+	//#endregion
+	//#region src/Wristband.jsx
 	var PALETTE = {
 		amber: {
 			name: "Warm amber",
 			color: "#bb9364",
+			light: "#e6bb7b",
 			soft: "#f2e7d4",
 			ink: "#775734",
 			rgb: "187, 147, 100"
@@ -11465,6 +12833,7 @@
 		blue: {
 			name: "Quiet blue",
 			color: "#7a9ab0",
+			light: "#91bdd8",
 			soft: "#e3edf2",
 			ink: "#476a83",
 			rgb: "122, 154, 176"
@@ -11472,6 +12841,7 @@
 		lavender: {
 			name: "Soft lavender",
 			color: "#a394bd",
+			light: "#c1abe5",
 			soft: "#eae4f1",
 			ink: "#6d5b87",
 			rgb: "163, 148, 189"
@@ -11479,6 +12849,7 @@
 		peach: {
 			name: "Warm peach",
 			color: "#c8957e",
+			light: "#e8af90",
 			soft: "#f2e2d9",
 			ink: "#855a47",
 			rgb: "200, 149, 126"
@@ -11486,6 +12857,7 @@
 		sage: {
 			name: "Gentle sage",
 			color: "#91a38a",
+			light: "#b0c9a1",
 			soft: "#e4eadf",
 			ink: "#5c7456",
 			rgb: "145, 163, 138"
@@ -11527,10 +12899,57 @@
 			description: "The light and the interface share your selected feeling."
 		},
 		saved: {
-			label: "Echo ready",
-			description: "A soft sage glow marks the completion of this step."
+			label: "Moment acknowledged",
+			description: "A gentle light pulse acknowledges this moment. Your feeling keeps its colour."
 		}
 	};
+	var FEEDBACK_MESSAGES = {
+		submitted: "Your echo has been added. Your feeling stays with you.",
+		saved: "Your moment is ready to keep.",
+		connected: "Your wristband light preview is ready.",
+		preview: "A gentle light and vibration preview."
+	};
+	var PREFERENCES_KEY = "gallery-echoes-feedback-preferences-v1";
+	var WIFI_ENDPOINT_KEY = "gallery-echoes-wifi-endpoint-v1";
+	function readPreferences() {
+		const defaults = {
+			vibrationEnabled: true,
+			quietMode: false
+		};
+		try {
+			const saved = JSON.parse(window.localStorage.getItem(PREFERENCES_KEY) || "null");
+			return {
+				vibrationEnabled: typeof saved?.vibrationEnabled === "boolean" ? saved.vibrationEnabled : defaults.vibrationEnabled,
+				quietMode: typeof saved?.quietMode === "boolean" ? saved.quietMode : defaults.quietMode
+			};
+		} catch {
+			return defaults;
+		}
+	}
+	function readLightSettings() {
+		try {
+			return normalizeLightSettings(JSON.parse(window.localStorage.getItem("gallery-echoes-light-v1") || "null"));
+		} catch {
+			return normalizeLightSettings(null);
+		}
+	}
+	function readWifiEndpoint() {
+		try {
+			return normalizeDeviceUrl(window.localStorage.getItem(WIFI_ENDPOINT_KEY) || "http://192.168.4.1");
+		} catch {
+			return DEFAULT_DEVICE_URL;
+		}
+	}
+	function initialWifiConnection() {
+		return {
+			status: "disconnected",
+			endpoint: DEFAULT_DEVICE_URL,
+			device: null,
+			lastApplied: null,
+			lastSeenAt: null,
+			error: null
+		};
+	}
 	var WristbandContext = (0, import_react.createContext)(null);
 	var initialState = {
 		mode: "personal",
@@ -11557,126 +12976,799 @@
 	}
 	function getTone({ mode, feeling, signal, feelingChosen }) {
 		if (signal === "scanning") return "blue";
-		if (signal === "saved") return "sage";
 		if (signal === "idle") return "amber";
 		if (mode === "team" && !feelingChosen) return "lavender";
 		return FEELINGS$1.find((item) => item.label === feeling)?.tone || "amber";
 	}
 	function WristbandProvider({ children }) {
 		const [state, dispatch] = (0, import_react.useReducer)(wristbandReducer, initialState);
+		const [preferences, setPreferences] = (0, import_react.useState)(readPreferences);
+		const [lightSettings, setLightSettings] = (0, import_react.useState)(readLightSettings);
+		const [demoIndex, setDemoIndex] = (0, import_react.useState)(null);
+		const [reducedMotion, setReducedMotion] = (0, import_react.useState)(false);
+		const [feedback, setFeedback] = (0, import_react.useState)(null);
+		const [wifiEndpoint, setWifiEndpoint] = (0, import_react.useState)(readWifiEndpoint);
+		const [wifiConnection, setWifiConnection] = (0, import_react.useState)(initialWifiConnection);
+		const [wifiSessionReady, setWifiSessionReady] = (0, import_react.useState)(false);
+		const wifiControllerRef = (0, import_react.useRef)(null);
+		const wifiAttemptRef = (0, import_react.useRef)(0);
+		const lightCommandRef = (0, import_react.useRef)(null);
+		const wifiEndpointRef = (0, import_react.useRef)(wifiEndpoint);
+		const preferencesRef = (0, import_react.useRef)(preferences);
+		const stateRef = (0, import_react.useRef)(state);
+		const lightSettingsRef = (0, import_react.useRef)(lightSettings);
+		const demoIndexRef = (0, import_react.useRef)(demoIndex);
+		const demoOwnerRef = (0, import_react.useRef)(null);
+		const demoTimer = (0, import_react.useRef)(null);
+		const feedbackTimer = (0, import_react.useRef)(null);
+		const feedbackId = (0, import_react.useRef)(0);
+		preferencesRef.current = preferences;
+		stateRef.current = state;
+		lightSettingsRef.current = lightSettings;
+		demoIndexRef.current = demoIndex;
+		wifiEndpointRef.current = wifiEndpoint;
+		(0, import_react.useEffect)(() => {
+			let active = true;
+			const controller = createWifiLightController({ onChange: (snapshot) => {
+				if (!active) return;
+				setWifiConnection(snapshot);
+				if (["disconnected", "error"].includes(snapshot.status)) setWifiSessionReady(false);
+			} });
+			wifiControllerRef.current = controller;
+			setWifiConnection(controller.getSnapshot());
+			return () => {
+				active = false;
+				wifiAttemptRef.current += 1;
+				wifiControllerRef.current = null;
+				controller.dispose();
+			};
+		}, []);
+		(0, import_react.useEffect)(() => {
+			try {
+				window.localStorage.setItem(WIFI_ENDPOINT_KEY, normalizeDeviceUrl(wifiEndpoint));
+			} catch {}
+		}, [wifiEndpoint]);
+		const connectBoard = (0, import_react.useCallback)(async (address) => {
+			const endpoint = normalizeDeviceUrl(address ?? wifiEndpointRef.current);
+			const controller = wifiControllerRef.current;
+			if (!controller) throw new Error("Board controls are still preparing. Please try again.");
+			const attempt = ++wifiAttemptRef.current;
+			setWifiEndpoint(endpoint);
+			setWifiSessionReady(false);
+			try {
+				await controller.connect(endpoint, lightCommandRef.current);
+				if (attempt !== wifiAttemptRef.current || controller !== wifiControllerRef.current) return false;
+				if (!["connected", "sending"].includes(controller.getSnapshot().status)) return false;
+				setWifiSessionReady(true);
+				return true;
+			} catch (error) {
+				if (attempt !== wifiAttemptRef.current) return false;
+				setWifiSessionReady(false);
+				throw error;
+			}
+		}, []);
+		const disconnectBoard = (0, import_react.useCallback)(() => {
+			wifiAttemptRef.current += 1;
+			setWifiSessionReady(false);
+			wifiControllerRef.current?.disconnect();
+		}, []);
+		const stopColourDemo = (0, import_react.useCallback)((owner) => {
+			if (owner !== void 0 && demoOwnerRef.current !== owner) return;
+			clearInterval(demoTimer.current);
+			demoIndexRef.current = null;
+			demoOwnerRef.current = null;
+			setDemoIndex(null);
+		}, []);
 		const setMode = (0, import_react.useCallback)((value) => dispatch({
 			type: "mode",
 			value
 		}), []);
-		const setFeeling = (0, import_react.useCallback)((value) => dispatch({
-			type: "feeling",
-			value
-		}), []);
+		const setFeeling = (0, import_react.useCallback)((value, { preserveCustom = false } = {}) => {
+			const next = typeof value === "function" ? value(stateRef.current.feeling) : value;
+			if (!FEELINGS$1.some((item) => item.label === next)) return;
+			if (!preserveCustom) {
+				stopColourDemo();
+				setLightSettings((current) => current.customColour === null && current.lightOn ? current : {
+					...current,
+					customColour: null,
+					lightOn: true
+				});
+			}
+			dispatch({
+				type: "feeling",
+				value: next
+			});
+		}, [stopColourDemo]);
 		const setSignal = (0, import_react.useCallback)((value) => dispatch({
 			type: "signal",
 			value
 		}), []);
+		const setCustomColour = (0, import_react.useCallback)((value) => {
+			const next = typeof value === "function" ? value(lightSettingsRef.current.customColour) : value;
+			const hex = next === null ? null : normalizeHex(next);
+			if (next !== null && !hex) return;
+			stopColourDemo();
+			setLightSettings((current) => current.customColour === hex && (hex === null || current.lightOn) ? current : {
+				...current,
+				customColour: hex,
+				lightOn: hex === null ? current.lightOn : true
+			});
+		}, [stopColourDemo]);
+		const setBrightness = (0, import_react.useCallback)((value) => {
+			const frame = demoIndexRef.current === null ? null : ARDUINO_DEMO_FRAMES[demoIndexRef.current];
+			const next = Number(typeof value === "function" ? value(frame ? 100 : lightSettingsRef.current.brightness) : value);
+			if (!Number.isFinite(next)) return;
+			stopColourDemo();
+			const brightness = Math.round(Math.max(0, Math.min(100, next)));
+			setLightSettings((current) => ({
+				...current,
+				...frame ? {
+					customColour: frame.hex,
+					lightOn: frame.lightOn
+				} : {},
+				brightness
+			}));
+		}, [stopColourDemo]);
+		const setLightOn = (0, import_react.useCallback)((value) => {
+			const frame = demoIndexRef.current === null ? null : ARDUINO_DEMO_FRAMES[demoIndexRef.current];
+			const next = Boolean(typeof value === "function" ? value(frame ? frame.lightOn : lightSettingsRef.current.lightOn) : value);
+			stopColourDemo();
+			setLightSettings((current) => ({
+				...current,
+				...frame ? {
+					customColour: frame.hex,
+					brightness: 100
+				} : {},
+				lightOn: next
+			}));
+		}, [stopColourDemo]);
+		const startColourDemo = (0, import_react.useCallback)((owner = null) => {
+			if (preferencesRef.current.quietMode || !motionAllowed()) return false;
+			demoIndexRef.current = 0;
+			demoOwnerRef.current = owner;
+			setDemoIndex(0);
+			return true;
+		}, []);
+		const setVibrationEnabled = (0, import_react.useCallback)((value) => setPreferences((current) => {
+			const next = Boolean(typeof value === "function" ? value(current.vibrationEnabled) : value);
+			return next === current.vibrationEnabled ? current : {
+				...current,
+				vibrationEnabled: next
+			};
+		}), []);
+		const setQuietMode = (0, import_react.useCallback)((value) => setPreferences((current) => {
+			const next = Boolean(typeof value === "function" ? value(current.quietMode) : value);
+			return next === current.quietMode ? current : {
+				...current,
+				quietMode: next
+			};
+		}), []);
+		const triggerFeedback = (0, import_react.useCallback)((type = "submitted", message) => {
+			const current = preferencesRef.current;
+			const next = {
+				id: ++feedbackId.current,
+				type,
+				message: message || FEEDBACK_MESSAGES[type] || FEEDBACK_MESSAGES.submitted,
+				simulatedVibration: current.vibrationEnabled && !current.quietMode
+			};
+			clearTimeout(feedbackTimer.current);
+			setFeedback(next);
+			feedbackTimer.current = setTimeout(() => setFeedback((latest) => latest?.id === next.id ? null : latest), 3200);
+			return next;
+		}, []);
+		(0, import_react.useEffect)(() => {
+			try {
+				window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+			} catch {}
+		}, [preferences]);
+		(0, import_react.useEffect)(() => {
+			try {
+				window.localStorage.setItem(LIGHT_STORAGE_KEY, JSON.stringify(lightSettings));
+			} catch {}
+		}, [lightSettings]);
+		(0, import_react.useEffect)(() => {
+			if (typeof window === "undefined" || !window.matchMedia) return void 0;
+			const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+			const update = () => {
+				setReducedMotion(media.matches);
+				if (media.matches) stopColourDemo();
+			};
+			update();
+			media.addEventListener("change", update);
+			return () => media.removeEventListener("change", update);
+		}, [stopColourDemo]);
+		const demoRunning = demoIndex !== null;
+		(0, import_react.useEffect)(() => {
+			if (!demoRunning) return void 0;
+			if (preferences.quietMode || reducedMotion || !motionAllowed()) {
+				stopColourDemo();
+				return;
+			}
+			demoTimer.current = setInterval(() => setDemoIndex((current) => current === null ? null : (current + 1) % ARDUINO_DEMO_FRAMES.length), 1e3);
+			return () => clearInterval(demoTimer.current);
+		}, [
+			demoRunning,
+			preferences.quietMode,
+			reducedMotion,
+			stopColourDemo
+		]);
+		(0, import_react.useEffect)(() => () => clearTimeout(feedbackTimer.current), []);
+		const tone = getTone(state);
+		const demoFrame = demoRunning ? ARDUINO_DEMO_FRAMES[demoIndex] : null;
+		const custom = demoFrame?.hex || lightSettings.customColour;
+		const palette = (0, import_react.useMemo)(() => custom ? deriveLightPalette(custom) : PALETTE[tone], [custom, tone]);
+		const brightness = demoFrame ? 100 : lightSettings.brightness;
+		const lightOn = demoFrame ? demoFrame.lightOn : lightSettings.lightOn;
+		const activeColour = custom || palette.light;
+		const lightOutput = getLightOutput(activeColour, brightness, lightOn);
+		const lightActive = Math.max(lightOutput.r, lightOutput.g, lightOutput.b) > 0;
+		const isFeelingColour = state.feelingChosen && !["idle", "scanning"].includes(state.signal);
+		const displayMode = custom ? "custom" : isFeelingColour ? "feeling" : "ambient";
+		const colourLabel = demoFrame ? `Arduino sequence · ${demoFrame.label}` : custom ? palette.name : isFeelingColour ? `${state.feeling} · ${palette.name}` : palette.name;
+		const lightLabel = !lightOn ? `Light off · ${colourLabel}` : !lightActive ? `No light output · ${colourLabel}` : `${colourLabel}${brightness < 100 ? ` · ${brightness}%` : ""}`;
+		const wifiConnected = wifiSessionReady && ["connected", "sending"].includes(wifiConnection.status);
+		lightCommandRef.current = {
+			colour: activeColour,
+			brightness,
+			lightOn
+		};
+		(0, import_react.useEffect)(() => {
+			if ([
+				"connecting",
+				"connected",
+				"sending"
+			].includes(wifiConnection.status)) wifiControllerRef.current?.setLight({
+				colour: activeColour,
+				brightness,
+				lightOn
+			});
+		}, [
+			activeColour,
+			brightness,
+			lightOn,
+			wifiConnected,
+			wifiConnection.status
+		]);
 		const value = (0, import_react.useMemo)(() => ({
 			mode: state.mode,
 			feeling: state.feeling,
 			signal: state.signal,
+			feelingChosen: state.feelingChosen,
 			setMode,
 			setFeeling,
-			setSignal
+			setSignal,
+			...preferences,
+			setVibrationEnabled,
+			setQuietMode,
+			feedbackPreferences: preferences,
+			feedback,
+			triggerFeedback,
+			customColour: lightSettings.customColour,
+			setCustomColour,
+			brightness,
+			setBrightness,
+			lightOn,
+			setLightOn,
+			activeColour,
+			lightLabel,
+			displayMode,
+			lightOutput,
+			lightActive,
+			reducedMotion,
+			demoRunning,
+			demoStep: demoFrame ? {
+				index: demoIndex,
+				...demoFrame
+			} : null,
+			startColourDemo,
+			stopColourDemo,
+			wifiEndpoint,
+			setWifiEndpoint,
+			wifiConnection,
+			wifiConnected,
+			connectBoard,
+			disconnectBoard
 		}), [
-			state.mode,
-			state.feeling,
-			state.signal,
+			state,
 			setMode,
 			setFeeling,
-			setSignal
+			setSignal,
+			preferences,
+			setVibrationEnabled,
+			setQuietMode,
+			feedback,
+			triggerFeedback,
+			lightSettings.customColour,
+			setCustomColour,
+			brightness,
+			setBrightness,
+			lightOn,
+			setLightOn,
+			activeColour,
+			lightLabel,
+			displayMode,
+			lightOutput.r,
+			lightOutput.g,
+			lightOutput.b,
+			lightOutput.hex,
+			lightActive,
+			reducedMotion,
+			demoRunning,
+			demoIndex,
+			demoFrame,
+			startColourDemo,
+			stopColourDemo,
+			wifiEndpoint,
+			wifiConnection,
+			wifiConnected,
+			connectBoard,
+			disconnectBoard
 		]);
-		const tone = getTone(state);
-		const palette = PALETTE[tone];
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandContext.Provider, {
 			value: {
 				...value,
 				tone,
-				feelingChosen: state.feelingChosen
+				palette
 			},
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "echo-experience",
-				"data-echo-tone": tone,
+				"data-echo-tone": custom ? "custom" : tone,
 				"data-echo-signal": state.signal,
 				"data-echo-mode": state.mode,
+				"data-echo-quiet": preferences.quietMode ? "true" : "false",
+				"data-echo-vibration": preferences.vibrationEnabled ? "true" : "false",
+				"data-echo-custom": custom ? "true" : "false",
+				"data-echo-brightness": brightness,
+				"data-echo-light-on": lightOn ? "true" : "false",
+				"data-echo-light-active": lightActive ? "true" : "false",
+				"data-echo-demo": demoRunning ? "running" : "stopped",
+				"data-echo-wifi-status": wifiConnection.status,
+				"data-echo-wifi-linked": wifiConnected ? "true" : "false",
 				style: {
 					"--echo-color": palette.color,
+					"--echo-led": lightOutput.hex,
 					"--echo-soft": palette.soft,
 					"--echo-ink": palette.ink,
-					"--echo-rgb": palette.rgb
+					"--echo-rgb": palette.rgb,
+					"--echo-led-rgb": `${lightOutput.r}, ${lightOutput.g}, ${lightOutput.b}`,
+					"--echo-light-intensity": Math.max(lightOutput.r, lightOutput.g, lightOutput.b) / 255
 				},
-				children
+				children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "wb-announcement",
+					role: "status",
+					"aria-live": "polite",
+					"aria-atomic": "true",
+					children: feedback?.message || ""
+				})]
 			})
 		});
 	}
 	function useWristband() {
 		const context = (0, import_react.useContext)(WristbandContext);
 		if (!context) throw new Error("useWristband must be used inside WristbandProvider.");
-		const { mode, setMode, feeling, setFeeling, signal, setSignal } = context;
-		return {
-			mode,
-			setMode,
-			feeling,
-			setFeeling,
-			signal,
-			setSignal,
-			feelingChosen: context.feelingChosen
-		};
+		const { tone, palette, ...api } = context;
+		return api;
 	}
 	function useWristbandPresentation() {
 		const context = (0, import_react.useContext)(WristbandContext);
 		if (!context) throw new Error("Wristband components must be used inside WristbandProvider.");
-		const palette = PALETTE[context.tone];
+		const palette = context.palette;
 		const signal = SIGNALS[context.signal];
-		const isTeamSync = context.mode === "team" && context.signal === "connected" && !context.feelingChosen;
+		const isTeamSync = context.mode === "team" && context.signal === "connected" && !context.feelingChosen && context.displayMode !== "custom";
+		const controlled = context.displayMode === "custom" || !context.lightOn || !context.lightActive;
+		const description = context.wifiConnected ? context.wifiConnection.lastApplied?.verification === "state-confirmed" ? "The board reports its last colour state. The wristband image remains a visual preview; emitted light is not measured." : "The board acknowledged the colour request with OK/OFF. The wristband image remains a visual preview; emitted light is not verified." : context.wifiConnection.status === "error" ? "The Wi-Fi link has stopped. Colours remain available as a screen preview. Reconnect from the colour studio to send again." : controlled ? "This light is previewed on screen. Manual colour changes turn the preview on and stop the sequence." : isTeamSync ? "Lavender connects your group. Choose a feeling to make the light your own." : signal.description;
 		return {
 			...context,
 			palette,
-			label: isTeamSync ? "Together in light" : signal.label,
-			description: isTeamSync ? "Lavender connects your group. Choose a feeling to make the light your own." : signal.description
+			label: controlled ? context.lightLabel : isTeamSync ? "Together in light" : signal.label,
+			description
 		};
 	}
-	function WristbandPreview({ large = false }) {
-		const { palette, signal, label } = useWristbandPresentation();
+	function WristbandPreview({ large = false, interactive = large }) {
+		const { palette, signal, label, feedback, quietMode, vibrationEnabled, lightLabel, lightActive, wifiConnected } = useWristbandPresentation();
+		const [acknowledgement, setAcknowledgement] = (0, import_react.useState)(0);
+		const [hapticFeedback, setHapticFeedback] = (0, import_react.useState)(0);
+		const acknowledgementSequence = (0, import_react.useRef)(0);
+		const acknowledgementTimer = (0, import_react.useRef)(null);
+		const hapticTimer = (0, import_react.useRef)(null);
+		const previousSignal = (0, import_react.useRef)(null);
+		const previousFeedbackId = (0, import_react.useRef)(0);
+		(0, import_react.useEffect)(() => {
+			const newFeedback = feedback?.id && feedback.id !== previousFeedbackId.current;
+			const newAcknowledgement = newFeedback && [
+				"submitted",
+				"saved",
+				"preview"
+			].includes(feedback.type);
+			const animate = !quietMode && lightActive && motionAllowed();
+			if (!animate) {
+				clearTimeout(acknowledgementTimer.current);
+				setAcknowledgement(0);
+			} else if (newAcknowledgement || signal === "saved" && previousSignal.current !== "saved") {
+				clearTimeout(acknowledgementTimer.current);
+				const id = ++acknowledgementSequence.current;
+				setAcknowledgement(id);
+				acknowledgementTimer.current = setTimeout(() => setAcknowledgement((current) => current === id ? 0 : current), 1600);
+			}
+			if (!animate || !vibrationEnabled) {
+				clearTimeout(hapticTimer.current);
+				setHapticFeedback(0);
+			} else if (newFeedback && feedback.simulatedVibration) {
+				clearTimeout(hapticTimer.current);
+				setHapticFeedback(feedback.id);
+				hapticTimer.current = setTimeout(() => setHapticFeedback(0), 500);
+			}
+			previousSignal.current = signal;
+			if (feedback?.id) previousFeedbackId.current = feedback.id;
+		}, [
+			signal,
+			feedback?.id,
+			feedback?.type,
+			feedback?.simulatedVibration,
+			quietMode,
+			vibrationEnabled,
+			lightActive
+		]);
+		(0, import_react.useEffect)(() => () => {
+			clearTimeout(acknowledgementTimer.current);
+			clearTimeout(hapticTimer.current);
+		}, []);
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: `wb-preview${large ? " wb-preview-large" : ""}`,
-			"data-signal": signal,
-			role: "img",
-			"aria-label": `Wristband preview. ${palette.name}. ${label}. Prototype light simulation.`,
+			className: `wb-preview-group${large ? " wb-preview-group-large" : ""}`,
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: `wb-preview${large ? " wb-preview-large" : ""}`,
+				"data-signal": signal,
+				role: "img",
+				"aria-label": `Wristband visual preview. ${palette.name}. ${label}. ${wifiConnected ? "Board linked over Wi-Fi." : "Preview only. No board connection."}`,
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "wb-preview-halo",
+						"aria-hidden": "true"
+					}),
+					acknowledgement > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "wb-feedback-wave",
+						onAnimationEnd: () => setAcknowledgement(0),
+						"aria-hidden": "true"
+					}, acknowledgement),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "wb-band-motion",
+						"data-haptic": hapticFeedback ? "true" : "false",
+						onAnimationEnd: (event) => {
+							if (event.target === event.currentTarget) setHapticFeedback(0);
+						},
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandModel, {})
+					}, `haptic-${hapticFeedback}`),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "wb-preview-colour",
+						"aria-hidden": "true",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), lightLabel]
+					})
+				]
+			}), interactive && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandFeelingRail, { compact: large })]
+		});
+	}
+	function motionAllowed() {
+		return typeof window !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	}
+	function WristbandFeelingRail({ compact = false }) {
+		const { feeling, feelingChosen, setFeeling, setSignal, quietMode, displayMode } = useWristband();
+		const feelingSelected = feelingChosen && displayMode === "feeling";
+		const selectedIndex = Math.max(0, FEELINGS$1.findIndex((item) => item.label === feeling));
+		const trackRef = (0, import_react.useRef)(null);
+		const cardRefs = (0, import_react.useRef)([]);
+		const dragRef = (0, import_react.useRef)(null);
+		const settleTimer = (0, import_react.useRef)(null);
+		const programmaticTimer = (0, import_react.useRef)(null);
+		const programmaticScroll = (0, import_react.useRef)(false);
+		const positioned = (0, import_react.useRef)(false);
+		const suppressClick = (0, import_react.useRef)(false);
+		const [dragging, setDragging] = (0, import_react.useState)(false);
+		const headingId = (0, import_react.useId)();
+		const instructionId = (0, import_react.useId)();
+		const selectIndex = (0, import_react.useCallback)((index) => {
+			const item = FEELINGS$1[Math.max(0, Math.min(FEELINGS$1.length - 1, index))];
+			setFeeling(item.label);
+			setSignal("connected");
+		}, [setFeeling, setSignal]);
+		const nearestIndex = () => {
+			const track = trackRef.current;
+			if (!track) return selectedIndex;
+			const origin = cardRefs.current[0]?.offsetLeft || 0;
+			return cardRefs.current.reduce((closest, card, index) => Math.abs(card.offsetLeft - origin - track.scrollLeft) < Math.abs(cardRefs.current[closest].offsetLeft - origin - track.scrollLeft) ? index : closest, 0);
+		};
+		const positionCard = (0, import_react.useCallback)((index, immediate = false) => {
+			const track = trackRef.current;
+			const card = cardRefs.current[index];
+			if (!track || !card) return;
+			const left = card.offsetLeft - (cardRefs.current[0]?.offsetLeft || 0);
+			if (Math.abs(track.scrollLeft - left) < 1) return;
+			programmaticScroll.current = true;
+			clearTimeout(programmaticTimer.current);
+			track.scrollTo({
+				left,
+				behavior: !immediate && !quietMode && motionAllowed() ? "smooth" : "auto"
+			});
+			programmaticTimer.current = setTimeout(() => {
+				programmaticScroll.current = false;
+			}, 650);
+		}, [quietMode]);
+		(0, import_react.useLayoutEffect)(() => {
+			positionCard(selectedIndex, !positioned.current);
+			positioned.current = true;
+		}, [selectedIndex, positionCard]);
+		(0, import_react.useEffect)(() => {
+			let width = trackRef.current?.clientWidth;
+			const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => {
+				const nextWidth = trackRef.current?.clientWidth;
+				if (nextWidth !== width) {
+					width = nextWidth;
+					positionCard(selectedIndex, true);
+				}
+			});
+			if (trackRef.current) observer?.observe(trackRef.current);
+			return () => observer?.disconnect();
+		}, [selectedIndex, positionCard]);
+		(0, import_react.useEffect)(() => () => {
+			clearTimeout(settleTimer.current);
+			clearTimeout(programmaticTimer.current);
+		}, []);
+		const interruptScroll = () => {
+			if (programmaticScroll.current && trackRef.current) trackRef.current.scrollTo({
+				left: trackRef.current.scrollLeft,
+				behavior: "auto"
+			});
+			programmaticScroll.current = false;
+			clearTimeout(programmaticTimer.current);
+			clearTimeout(settleTimer.current);
+		};
+		const finishDrag = (event) => {
+			const drag = dragRef.current;
+			if (!drag) return;
+			dragRef.current = null;
+			setDragging(false);
+			clearTimeout(settleTimer.current);
+			if (drag.moved) {
+				if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+				let next = nearestIndex();
+				const distance = event.currentTarget.scrollLeft - drag.left;
+				if (next === drag.index && Math.abs(distance) > Math.min(48, event.currentTarget.clientWidth * .18)) next = Math.max(0, Math.min(FEELINGS$1.length - 1, drag.index + Math.sign(distance)));
+				selectIndex(next);
+				positionCard(next);
+			}
+		};
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: `wb-feeling-rail${compact ? " wb-feeling-rail-compact" : ""}`,
+			"aria-labelledby": headingId,
+			"aria-roledescription": "carousel",
 			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "wb-preview-halo",
-					"aria-hidden": "true"
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "wb-rail-heading",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+						id: headingId,
+						children: "Find your colour"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [String(selectedIndex + 1).padStart(2, "0"), " / 04"] })]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "wb-preview-ground",
-					"aria-hidden": "true"
+					className: `wb-rail-track${dragging ? " is-dragging" : ""}`,
+					ref: trackRef,
+					tabIndex: 0,
+					role: "group",
+					"aria-label": `Wristband feeling colours. ${feeling}. ${PALETTE[FEELINGS$1[selectedIndex].tone].name}.`,
+					"aria-describedby": instructionId,
+					onKeyDown: (event) => {
+						if (![
+							"ArrowLeft",
+							"ArrowRight",
+							"Home",
+							"End"
+						].includes(event.key)) return;
+						event.preventDefault();
+						event.currentTarget.focus({ preventScroll: true });
+						selectIndex(event.key === "Home" ? 0 : event.key === "End" ? FEELINGS$1.length - 1 : selectedIndex + (event.key === "ArrowRight" ? 1 : -1));
+					},
+					onPointerDown: (event) => {
+						interruptScroll();
+						suppressClick.current = false;
+						if (event.pointerType !== "mouse" || event.button !== 0) return;
+						dragRef.current = {
+							x: event.clientX,
+							y: event.clientY,
+							left: event.currentTarget.scrollLeft,
+							index: nearestIndex(),
+							moved: false
+						};
+					},
+					onPointerMove: (event) => {
+						const drag = dragRef.current;
+						if (!drag) return;
+						if (!event.buttons) {
+							dragRef.current = null;
+							setDragging(false);
+							return;
+						}
+						const delta = event.clientX - drag.x;
+						if (!drag.moved && (Math.abs(delta) < 6 || Math.abs(delta) < Math.abs(event.clientY - drag.y))) return;
+						if (!drag.moved) {
+							drag.moved = true;
+							suppressClick.current = true;
+							setDragging(true);
+							event.currentTarget.setPointerCapture(event.pointerId);
+						}
+						event.preventDefault();
+						event.currentTarget.scrollLeft = drag.left - delta;
+					},
+					onPointerUp: finishDrag,
+					onPointerCancel: finishDrag,
+					onLostPointerCapture: finishDrag,
+					onPointerLeave: () => {
+						if (dragRef.current && !dragRef.current.moved) dragRef.current = null;
+					},
+					onWheel: interruptScroll,
+					onClickCapture: (event) => {
+						if (suppressClick.current && event.detail > 0) {
+							event.preventDefault();
+							event.stopPropagation();
+							suppressClick.current = false;
+						}
+					},
+					onScroll: () => {
+						clearTimeout(settleTimer.current);
+						if (programmaticScroll.current || dragRef.current?.moved) return;
+						settleTimer.current = setTimeout(() => {
+							if (!programmaticScroll.current && !dragRef.current?.moved) selectIndex(nearestIndex());
+						}, 180);
+					},
+					children: FEELINGS$1.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						className: "wb-colour-card",
+						ref: (node) => {
+							cardRefs.current[index] = node;
+						},
+						tabIndex: index === selectedIndex ? 0 : -1,
+						"aria-pressed": feelingSelected && index === selectedIndex,
+						"aria-label": `${item.label}. ${PALETTE[item.tone].name}. ${item.description}.`,
+						style: {
+							"--wb-card-colour": PALETTE[item.tone].color,
+							"--wb-card-soft": PALETTE[item.tone].soft,
+							"--wb-card-ink": PALETTE[item.tone].ink
+						},
+						onClick: () => selectIndex(index),
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "wb-colour-orb",
+								"aria-hidden": "true"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "wb-colour-card-copy",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: item.label }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: PALETTE[item.tone].name }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: item.description })
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "wb-colour-card-check",
+								"aria-hidden": "true",
+								children: feelingSelected && index === selectedIndex ? "✓" : "+"
+							})
+						]
+					}, item.label))
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "wb-band",
-					"aria-hidden": "true",
+					className: "wb-rail-controls",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "wb-band-edge" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "wb-band-mark",
-							children: "echoes"
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "wb-rail-arrow",
+							type: "button",
+							onClick: () => selectIndex(selectedIndex - 1),
+							disabled: selectedIndex === 0,
+							"aria-label": "Previous feeling colour",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+								viewBox: "0 0 16 16",
+								fill: "none",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+									d: "m9 4-4 4 4 4",
+									stroke: "currentColor",
+									strokeWidth: "1.3",
+									strokeLinecap: "round",
+									strokeLinejoin: "round"
+								})
+							})
 						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "wb-led",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "wb-rail-dots",
+							role: "group",
+							"aria-label": "Choose a feeling colour",
+							children: FEELINGS$1.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								type: "button",
+								className: "wb-rail-dot",
+								onClick: () => selectIndex(index),
+								"aria-label": item.label,
+								"aria-pressed": feelingSelected && index === selectedIndex,
+								"data-current": index === selectedIndex ? "true" : "false",
+								style: { "--wb-dot-colour": PALETTE[item.tone].color },
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+							}, item.label))
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "wb-rail-arrow",
+							type: "button",
+							onClick: () => selectIndex(selectedIndex + 1),
+							disabled: selectedIndex === FEELINGS$1.length - 1,
+							"aria-label": "Next feeling colour",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+								viewBox: "0 0 16 16",
+								fill: "none",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+									d: "m6 4 4 4-4 4",
+									stroke: "currentColor",
+									strokeWidth: "1.3",
+									strokeLinecap: "round",
+									strokeLinejoin: "round"
+								})
+							})
 						})
 					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "wb-rail-instruction",
+					id: instructionId,
+					children: "Swipe or drag to change your light · ← → keys"
 				})
 			]
 		});
 	}
-	function WristbandStatus({ compact = false }) {
-		const { feeling, setFeeling, setSignal, signal, palette, label, description } = useWristbandPresentation();
+	function WristbandFeedbackPreferences() {
+		const { vibrationEnabled, setVibrationEnabled, quietMode, setQuietMode, triggerFeedback } = useWristband();
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "wb-preferences",
+			"aria-label": "Wristband feedback preferences",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "wb-preferences-heading",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "A quieter visit" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Saved on this device" })]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "wb-preference-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Vibration preview" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: quietMode ? "Muted while quiet mode is on" : "A gentle on-screen acknowledgement" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						role: "switch",
+						className: "wb-preference-switch",
+						"aria-label": "Vibration preview",
+						"aria-checked": vibrationEnabled,
+						onClick: () => setVibrationEnabled((current) => !current),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "wb-preference-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Quiet mode" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Steady light. Muted vibration preview." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						role: "switch",
+						className: "wb-preference-switch",
+						"aria-label": "Quiet mode",
+						"aria-checked": quietMode,
+						onClick: () => setQuietMode((current) => !current),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "wb-feedback-test",
+					type: "button",
+					onClick: () => triggerFeedback("preview", quietMode ? "Quiet mode is on. Your light stays steady." : "Feedback preview. A gentle pulse in your chosen colour."),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						"aria-hidden": "true",
+						children: "⌁"
+					}), "Try feedback preview"]
+				})
+			]
+		});
+	}
+	function WristbandStatus({ compact = false, onOpenStudio }) {
+		const { signal, palette, label, description, feedback, wifiConnected, wifiConnection } = useWristbandPresentation();
 		const [open, setOpen] = (0, import_react.useState)(false);
 		const [placement, setPlacement] = (0, import_react.useState)({});
 		const containerRef = (0, import_react.useRef)(null);
@@ -11699,7 +13791,8 @@
 				const rightEdge = Math.min(window.innerWidth - 12, boundary.right - 16);
 				const width = Math.min(320, Math.max(0, rightEdge - leftEdge));
 				const left = Math.max(leftEdge, Math.min(anchor.right - width, rightEdge - width)) - anchor.left;
-				const maxHeight = Math.max(180, Math.min(boundary.bottom, window.innerHeight) - anchor.bottom - 24);
+				const viewportBoundary = container.closest(".route-viewport")?.getBoundingClientRect();
+				const maxHeight = Math.max(180, Math.min(viewportBoundary?.bottom || boundary.bottom, window.innerHeight) - anchor.bottom - 24);
 				const nextPlacement = {
 					"--wb-popover-width": `${width}px`,
 					"--wb-popover-left": `${left}px`,
@@ -11824,47 +13917,40 @@
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "wb-signal-description",
-						children: description
+						children: feedback?.message || description
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("fieldset", {
-						className: "wb-feelings",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("legend", { children: "How does the art make you feel?" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "wb-feeling-grid",
-							children: FEELINGS$1.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								className: "wb-feeling",
-								type: "button",
-								"aria-pressed": feeling === item.label,
-								title: item.description,
-								style: { "--wb-swatch": PALETTE[item.tone].color },
-								onClick: () => {
-									setFeeling(item.label);
-									setSignal("connected");
-								},
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "wb-feeling-swatch",
-										"aria-hidden": "true"
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.label }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "wb-feeling-check",
-										"aria-hidden": "true",
-										children: feeling === item.label ? "✓" : ""
-									})
-								]
-							}, item.label))
+					onOpenStudio && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						className: "wb-open-studio",
+						onClick: () => {
+							setOpen(false);
+							onOpenStudio();
+						},
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Open colour studio" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Choose any light colour and brightness" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"aria-hidden": "true",
+							children: "↗"
 						})]
 					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandFeelingRail, {}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandFeedbackPreferences, {}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 						className: "wb-prototype-note",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 							"aria-hidden": "true",
 							children: "◌"
-						}), " Prototype · light simulation"]
+						}), wifiConnected ? "Board linked · Wi-Fi colour control" : wifiConnection.status === "error" ? "Preview only · Wi-Fi link stopped" : "Preview only · no board connection"]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "wb-hardware-note",
-						children: "This preview does not connect to a physical wristband."
+						children: wifiConnected ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+							"Nano ESP32 is linked over Wi-Fi.",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+							"Colour requests are sent to the board. Vibration stays a screen preview."
+						] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+							"Connect your Nano ESP32 from the colour studio.",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+							"Until then, light and vibration remain screen previews."
+						] })
 					})
 				]
 			})]
@@ -12046,7 +14132,8 @@
 		"sketches",
 		"shareSketch",
 		"sketchShared",
-		"mine"
+		"mine",
+		"device"
 	];
 	var FEELINGS = [
 		[
@@ -12070,6 +14157,48 @@
 			"Sage"
 		]
 	];
+	var ECHO_STORAGE = "gallery-echoes-colours-v1";
+	var GUIDE_STORAGE = "gallery-echoes-guide-v1";
+	function readEchoes() {
+		try {
+			const saved = JSON.parse(localStorage.getItem(ECHO_STORAGE) || "{}");
+			return Object.fromEntries(Object.entries(saved).filter(([key, value]) => /^monet$|^collection-[0-5]$/.test(key) && value && FEELINGS.some(([label]) => label === value.feeling) && Number.isFinite(value.submittedAt)));
+		} catch {
+			return {};
+		}
+	}
+	function rememberGuide() {
+		try {
+			localStorage.setItem(GUIDE_STORAGE, "seen");
+		} catch {}
+	}
+	function guideWasSeen() {
+		try {
+			return localStorage.getItem(GUIDE_STORAGE) === "seen";
+		} catch {
+			return false;
+		}
+	}
+	function echoArtwork(key) {
+		return key?.startsWith("collection-") ? COLLECTION[Number(key.slice(-1))] || MONET : MONET;
+	}
+	function feelingColour(feeling) {
+		return FEELINGS.find(([label]) => label === feeling)?.[2] || "Blue";
+	}
+	function feelingTone(feeling) {
+		return FEELINGS.find(([label]) => label === feeling)?.[1] || "calm";
+	}
+	function sampleReflections(art) {
+		return art.image === MONET.image ? REFLECTIONS : [[
+			"“I kept returning to the light.”",
+			"Visitor A · sample echo",
+			"lavender"
+		], [
+			"“A small detail changed the way I saw it.”",
+			"Visitor B · sample echo",
+			"mint"
+		]];
+	}
 	function downloadAsset(fileName, downloadName) {
 		const anchor = document.createElement("a");
 		anchor.href = ASSET + fileName;
@@ -12121,7 +14250,10 @@
 						"aria-label": "Gallery Echoes",
 						children: "ge."
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandStatus, { compact: true }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandStatus, {
+						compact: true,
+						onOpenStudio: () => go("device")
+					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						type: "button",
 						className: "mode-switch",
@@ -12192,6 +14324,12 @@
 		});
 	}
 	function Welcome({ go }) {
+		const [guide, setGuide] = (0, import_react.useState)(false);
+		const begin = () => guideWasSeen() ? go("mode") : setGuide(true);
+		if (guide) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FirstVisitGuide, { onDone: () => {
+			rememberGuide();
+			go("mode");
+		} });
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen welcome-screen",
 			children: [
@@ -12246,11 +14384,128 @@
 							"in different ways."
 						] }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-							onClick: () => go("mode"),
+							onClick: begin,
 							children: "Begin your visit"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "text-link welcome-guide-link",
+							type: "button",
+							onClick: () => setGuide(true),
+							children: "How it works"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Take your time. Make it yours." })
 					]
+				})
+			]
+		});
+	}
+	function FirstVisitGuide({ onDone }) {
+		const [step, setStep] = (0, import_react.useState)(0);
+		const heading = (0, import_react.useRef)(null);
+		(0, import_react.useEffect)(() => {
+			heading.current?.focus({ preventScroll: true });
+		}, [step]);
+		const title = [
+			"An artwork. A moment.",
+			"Your colour, in light.",
+			"Your view comes first."
+		][step];
+		const copy = [
+			"Bring your wristband near an artwork tag, then preview the encounter.",
+			"Choose from four familiar colours. Swipe the wristband preview to see the light respond.",
+			"Send your colour once, then discover other echoes. Looking again and leaving an echo are always optional."
+		][step];
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "screen guide-screen",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "guide-top",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "brand-monogram",
+						children: "ge."
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "text-link",
+						type: "button",
+						onClick: onDone,
+						children: ["Skip guide ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+							name: "arrow",
+							size: 14
+						})]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "guide-progress",
+					"aria-label": "Visit guide steps",
+					children: [
+						"Discover",
+						"Choose",
+						"Connect"
+					].map((label, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						className: step === index ? "active" : "",
+						"aria-current": step === index ? "step" : void 0,
+						onClick: () => setStep(index),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["0", index + 1] }), label]
+					}, label))
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "guide-illustration",
+					children: step === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "guide-scan-art",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+								src: ASSET + "water-lilies.png",
+								alt: "A first encounter with Water Lilies and Bridge"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+								name: "scan",
+								size: 27
+							}) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {})
+						]
+					}) : step === 1 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandPreview, { large: true }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "guide-echo-art",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "guide-own-echo",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "spark",
+									size: 28
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Your echo" })]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {})
+							] }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Then, a new perspective." })
+						]
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+					className: "guide-copy",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Eyebrow, { children: [
+							"A little introduction · 0",
+							step + 1,
+							" / 03"
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+							tabIndex: -1,
+							ref: heading,
+							children: title
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: copy })
+					]
+				}, step),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "spacer" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					onClick: () => step < 2 ? setStep(step + 1) : onDone(),
+					children: step < 2 ? "Next" : "Choose how to visit"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "quiet-note",
+					children: "Follow your curiosity. You can skip any artwork."
 				})
 			]
 		});
@@ -12480,6 +14735,30 @@
 						]
 					})]
 				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "studio-entry-card",
+					type: "button",
+					onClick: () => go("device"),
+					"aria-label": "Open colour studio",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "studio-entry-light",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+								name: "spark",
+								size: 19
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Your wristband light" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "A colour of your own." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Explore the colour studio" })
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+							name: "arrow",
+							size: 17
+						})
+					]
+				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "section-heading",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "Your visit today" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "A little collection of moments" })]
@@ -12531,7 +14810,54 @@
 			]
 		});
 	}
-	function ArtworkDetail({ go, downloaded = false }) {
+	function DeviceColourScreen({ go }) {
+		const { wifiConnected, wifiConnection } = useWristband();
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "screen device-screen",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
+					title: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+						"Your light,",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: "your colour." })
+					] }),
+					eyebrow: "Wristband colour studio",
+					subtitle: "A small change in colour. A different atmosphere.",
+					go
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "device-simulation-note",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: wifiConnected ? "Board linked" : "Preview only" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: wifiConnected ? "Nano ESP32 · Wi-Fi" : wifiConnection.status === "error" ? "Reconnect to send colours" : "Connect when your board is ready" })
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandColourStudio, {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "device-visit-note",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+						name: "thought",
+						size: 16
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Your light is yours to explore. Changing it here keeps your artwork echoes as you left them." })]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					light: true,
+					onClick: () => go("home"),
+					children: "Return to my visit"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "quiet-note device-hardware-note",
+					children: [
+						"Arduino Nano ESP32 · Wi-Fi LED control.",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+						"Upload once by USB, then connect over Wi-Fi."
+					]
+				})
+			]
+		});
+	}
+	function ArtworkDetail({ go, downloaded = false, echo, onSubmit }) {
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen detail-screen",
 			children: [
@@ -12566,7 +14892,6 @@
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "artwork-copy",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Look a little closer" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "Water Lilies and Bridge" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "artist-name",
@@ -12574,7 +14899,7 @@
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "body-copy",
-							children: "Pause with the water, the light, and the reflections. What is the first detail that draws you in?"
+							children: "Pause with the water, the light, and the reflections. What stays with you?"
 						})
 					]
 				}),
@@ -12586,15 +14911,265 @@
 						size: 17
 					}), "Artwork download started"]
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(EchoComposer, {
+					go,
+					art: MONET,
+					echo,
+					onSubmit,
+					compact: true
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "text-link optional-reflection-link",
+					type: "button",
 					onClick: () => go("thought"),
-					icon: "thought",
-					children: "Add a thought"
+					children: ["Take a little more time ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+						name: "thought",
+						size: 14
+					})]
 				})
 			]
 		});
 	}
-	function Thought({ go }) {
+	function OtherEchoes({ go, art }) {
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "other-echoes",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "section-heading",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "Another way of seeing." }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Illustrative visitor echoes" })]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "echo-preview-list",
+					children: sampleReflections(art).slice(0, 2).map(([quote, meta, colour]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("blockquote", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "colour-dot " + colour }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: quote }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [meta.replace(/ · .*$/, ""), " · sample echo"] })] })] }, quote))
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "text-link",
+					type: "button",
+					onClick: () => go("shared"),
+					children: ["View sample reflections ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+						name: "arrow",
+						size: 14
+					})]
+				}),
+				art.image === MONET.image && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "text-link",
+					type: "button",
+					onClick: () => go("sketches"),
+					children: ["Discover visitor sketches ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+						name: "sketch",
+						size: 14
+					})]
+				})
+			]
+		});
+	}
+	function EchoComposer({ go, art, echo, onSubmit, compact = false }) {
+		const { feeling, setFeeling, setSignal, feelingChosen, quietMode, customColour, demoRunning, lightOn } = useWristband();
+		const [draft, setDraft] = (0, import_react.useState)(echo?.feeling || (feelingChosen ? feeling : ""));
+		const [editing, setEditing] = (0, import_react.useState)(false);
+		const feedbackRef = (0, import_react.useRef)(null), previousFeeling = (0, import_react.useRef)(feeling);
+		(0, import_react.useEffect)(() => {
+			if (feelingChosen) setDraft(feeling);
+			if (previousFeeling.current !== feeling && echo && echo.feeling !== feeling) setEditing(true);
+			previousFeeling.current = feeling;
+		}, [
+			feeling,
+			feelingChosen,
+			echo
+		]);
+		const choose = (next) => {
+			setDraft(next);
+			setFeeling(next);
+			setSignal("connected");
+		};
+		const keepPrevious = () => {
+			setDraft(echo.feeling);
+			setFeeling(echo.feeling, { preserveCustom: true });
+			setSignal("connected");
+			setEditing(false);
+		};
+		const submit = () => {
+			if (!draft) return;
+			onSubmit(draft);
+			setEditing(false);
+			requestAnimationFrame(() => {
+				feedbackRef.current?.focus({ preventScroll: true });
+				feedbackRef.current?.scrollIntoView({
+					block: "nearest",
+					behavior: quietMode || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"
+				});
+			});
+		};
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "echo-composer" + (compact ? " compact" : ""),
+			children: [
+				(customColour || demoRunning || lightOn === false) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "echo-studio-note",
+					children: "Your wristband has its own light setting. Choosing an echo colour returns it to your feeling."
+				}),
+				!echo || editing ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "echo-composer-heading",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Your first impression" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "A colour is enough." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Four familiar colours. No perfect shade to find." })
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "quick-colours",
+						role: "group",
+						"aria-label": "Choose your echo colour",
+						children: FEELINGS.map(([label, className, colour]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							className: "quick-colour " + className + (draft === label ? " selected" : ""),
+							onClick: () => choose(label),
+							"aria-pressed": draft === label,
+							"aria-label": colour + " · " + label,
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "quick-swatch",
+									children: draft === label && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+										name: "check",
+										size: 15
+									})
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: colour }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: label === "Other feeling" ? "Something else" : label })
+							]
+						}, label))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "quick-colour-feedback",
+						"aria-live": "polite",
+						children: draft ? feelingColour(draft) + " · " + draft + ". Your artwork echo colour." : "Tap a colour, or swipe your wristband preview."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						onClick: submit,
+						disabled: !draft,
+						icon: "spark",
+						children: echo ? "Update my echo" : "Send my echo"
+					}),
+					editing && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "text-link",
+						type: "button",
+						onClick: keepPrevious,
+						children: "Keep my previous echo"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "quiet-note",
+						children: "Your colour first. Other perspectives after."
+					})
+				] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "echo-feedback " + feelingTone(echo.feeling),
+						role: "status",
+						tabIndex: -1,
+						ref: feedbackRef,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "echo-feedback-check",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+								name: "check",
+								size: 23
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Echo added" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h2", { children: [
+								"Your ",
+								feelingColour(echo.feeling).toLowerCase(),
+								" echo is here."
+							] }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [
+								echo.feeling,
+								" · ",
+								art.title
+							] }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Saved locally in this prototype." })
+						] })]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "text-link edit-echo-link",
+						type: "button",
+						onClick: () => setEditing(true),
+						children: ["Change my colour ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+							name: "spark",
+							size: 13
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OtherEchoes, {
+						go,
+						art
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "echo-keepsakes",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => go("collective"),
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "download",
+									size: 17
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Keep an abstract memory" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "arrow",
+									size: 15
+								})
+							]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => go("sharedSuccess"),
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "users",
+									size: 17
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Preview a collective visual" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "arrow",
+									size: 15
+								})
+							]
+						})]
+					})
+				] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					light: true,
+					onClick: () => go("home"),
+					children: echo && !editing ? "Continue exploring" : "Skip for now"
+				}),
+				!echo && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "text-link browse-without-echo",
+					type: "button",
+					onClick: () => go("shared", { browseWithoutEcho: true }),
+					children: "Browse reflections without leaving an echo"
+				})
+			]
+		});
+	}
+	function LookAgain({ art }) {
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("details", {
+			className: "look-again",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("summary", { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+					name: "explore",
+					size: 16
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["Look again ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Optional" })] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					"aria-hidden": "true",
+					children: "+"
+				})
+			] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("figure", {
+				className: "reflection-image",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					src: ASSET + (art.image === MONET.image ? "reflection-art.png" : art.image),
+					alt: "Take another look at " + art.title
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("figcaption", { children: "No need to find an answer. Notice one detail, or simply move on." })]
+			})]
+		});
+	}
+	function Thought({ go, art, echo, onSubmit }) {
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen thought-screen",
 			children: [
@@ -12605,72 +15180,20 @@
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: "with you?" })
 					] }),
 					eyebrow: "A moment of reflection",
+					subtitle: art.title,
 					go
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("figure", {
-					className: "reflection-image",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-						src: ASSET + "reflection-art.png",
-						alt: "Light and reflections on the water"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("figcaption", { children: "A quiet moment with this artwork" })]
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(EchoComposer, {
+					go,
+					art,
+					echo,
+					onSubmit
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					onClick: () => go("capture"),
-					icon: "spark",
-					children: "Share feelings"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "section-heading",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "Nearby footprints" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Other eyes. Other echoes." })]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "footprints",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						type: "button",
-						className: "footprint-card",
-						onClick: () => go("shared"),
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "stat-icon peach",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "thought" })
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Someone noticed the reflection" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "4 shared reflections · latest 3m ago" })] }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
-								name: "arrow",
-								size: 16
-							})
-						]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						type: "button",
-						className: "footprint-card",
-						onClick: () => go("sketches"),
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "stat-icon mint",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "sketch" })
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "A different way of seeing" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "Discover visitor sketches" })] }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
-								name: "arrow",
-								size: 16
-							})
-						]
-					})]
-				})
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LookAgain, { art })
 			]
 		});
 	}
-	function CaptureResponse({ go }) {
-		const { feeling, setFeeling, setSignal, feelingChosen } = useWristband();
-		const [method, setMethod] = (0, import_react.useState)(feelingChosen ? "memory" : "");
-		(0, import_react.useEffect)(() => {
-			if (feelingChosen) setMethod((current) => current === "shared" ? current : "memory");
-		}, [feeling, feelingChosen]);
-		const choose = (next) => {
-			setFeeling(next);
-			setSignal("connected");
-			setMethod("memory");
-		};
+	function CaptureResponse({ go, art, echo, onSubmit }) {
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen capture-screen",
 			children: [
@@ -12681,77 +15204,23 @@
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: "a colour." })
 					] }),
 					eyebrow: "Leave your echo",
-					subtitle: "There are no wrong answers.",
+					subtitle: art.title + " · There are no wrong answers.",
 					go
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "section-label",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "01" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "Choose what resonates" })]
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(EchoComposer, {
+					go,
+					art,
+					echo,
+					onSubmit
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "feeling-cloud",
-					role: "group",
-					"aria-label": "Choose a feeling",
-					children: FEELINGS.map(([label, className, colour]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						type: "button",
-						className: "feeling-orb " + className + (feeling === label && method === "memory" ? " selected" : ""),
-						onClick: () => choose(label),
-						"aria-pressed": feeling === label && method === "memory",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "orb-glow" }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "orb-name",
-								children: label === "Other feeling" ? "Something else" : label
-							}),
-							feeling === label && method === "memory" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
-								name: "check",
-								size: 16
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: colour })
-						]
-					}, label))
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "feeling-feedback",
-					"aria-live": "polite",
-					children: method === "memory" ? feeling + " · your wristband and this space share a colour." : "Choose a feeling to see your wristband respond."
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "section-label",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "02" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "Or join a shared perspective" })]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					type: "button",
-					className: "reference-method" + (method === "shared" ? " selected" : ""),
-					onClick: () => {
-						setMethod("shared");
-						setSignal("connected");
-					},
-					"aria-pressed": method === "shared",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-							src: ASSET + "feeling-reference.png",
-							alt: "A wheel of colours"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Our collective echo" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Become part of the bigger picture." })] }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: method === "shared" ? "check" : "plus" })
-					]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					disabled: !method,
-					onClick: () => go(method === "shared" ? "sharedSuccess" : "collective"),
-					icon: "spark",
-					children: method === "shared" ? "Join the shared visual" : "Create my visual"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "quiet-note",
-					children: "A preview of your abstract memory."
-				})
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LookAgain, { art })
 			]
 		});
 	}
-	function CollectiveVisual({ go, shared = false }) {
+	function CollectiveVisual({ go, shared = false, echo, art }) {
 		const { feeling } = useWristband();
+		const { triggerFeedback } = useWristband();
+		const memoryFeeling = echo?.feeling || feeling;
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen collective-screen" + (shared ? " shared-success-screen" : ""),
 			children: [
@@ -12775,7 +15244,7 @@
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "memory-aura" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
 							src: ASSET + (shared ? "shared-visual.png" : "collective-visual.png"),
-							alt: shared ? "Shared abstract visual preview" : "Abstract memory preview for " + feeling
+							alt: shared ? "Shared abstract visual preview" : "Abstract memory preview for " + memoryFeeling
 						}),
 						shared && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 							className: "memory-badge",
@@ -12790,14 +15259,19 @@
 					className: "memory-caption",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "colour-dot" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: feeling }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: memoryFeeling }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "—" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: shared ? "Part of something shared" : "Your unique perspective" })
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: shared ? "A collective preview" : "Your perspective" })
 					]
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 					className: "quiet-note",
-					children: "Preview composition · inspired by this artwork"
+					children: [
+						"Sample composition · ",
+						art.title,
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+						"The colour responds; the artwork image is a fixed preview."
+					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "spacer" }),
 				shared ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
@@ -12809,20 +15283,25 @@
 						light: true,
 						onClick: () => go("shared"),
 						icon: "thought",
-						children: "View shared reflections"
+						children: "View sample reflections"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "quiet-note",
-						children: "Added to this prototype visit."
+						children: "Prototype preview · no online submission."
 					})
-				] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					onClick: () => {
 						downloadAsset("collective-visual.png", "gallery-echoes-memory.png");
+						triggerFeedback("saved", "Your visual download has started.");
 						go("saved");
 					},
 					icon: "download",
 					children: "Save my visual"
-				})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					light: true,
+					onClick: () => go("home"),
+					children: "Continue exploring"
+				})] })
 			]
 		});
 	}
@@ -12913,7 +15392,7 @@
 			]
 		});
 	}
-	function CollectionArtwork({ go, index }) {
+	function CollectionArtwork({ go, index, echo, onSubmit }) {
 		const art = COLLECTION[index] || COLLECTION[0];
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen collection-art-screen",
@@ -12945,11 +15424,21 @@
 						})
 					]
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "spacer" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					light: true,
-					onClick: () => go("unvisited"),
-					children: "Explore unvisited artworks"
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(EchoComposer, {
+					go,
+					art,
+					echo,
+					onSubmit,
+					compact: true
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "text-link optional-reflection-link",
+					type: "button",
+					onClick: () => go("thought"),
+					children: ["Take a little more time ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+						name: "thought",
+						size: 14
+					})]
 				})
 			]
 		});
@@ -13203,35 +15692,68 @@
 			]
 		});
 	}
-	function SharedReflections({ go }) {
+	function SharedReflections({ go, art, echo, explicitBrowse = false }) {
+		const [browseWithoutEcho, setBrowseWithoutEcho] = (0, import_react.useState)(explicitBrowse);
+		const reveal = !!echo || browseWithoutEcho;
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "screen reflections-screen",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
-					title: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+					title: reveal ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
 						"Through",
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: "other eyes." })
+					] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+						"Your view,",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: "first." })
 					] }),
 					eyebrow: "Nearby footprints",
-					subtitle: "Small observations around Water Lilies and Bridge.",
+					subtitle: art.title,
 					go
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				reveal ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "reflection-list",
-					children: REFLECTIONS.map(([quote, meta, colour], index) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					children: sampleReflections(art).map(([quote, meta, colour], index) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "reflection-meta",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "colour-dot " + colour }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: meta }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [meta.replace(/ · .*$/, ""), " · sample echo"] }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: String(index + 1).padStart(2, "0") })
 						]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("blockquote", { children: quote })] }, quote))
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					onClick: () => go("capture"),
 					icon: "thought",
-					children: "Add your thought"
+					children: echo ? "Return to my echo" : "Leave a colour"
+				})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "perspective-first",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "stat-icon lavender",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+								name: "thought",
+								size: 22
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h2", { children: [
+							"What does it say",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+							"to you?"
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Give your first impression a colour before exploring another perspective." }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							onClick: () => go("capture"),
+							icon: "spark",
+							children: "Leave my echo"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "text-link",
+							type: "button",
+							onClick: () => setBrowseWithoutEcho(true),
+							children: "View sample reflections without adding an echo"
+						})
+					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					light: true,
@@ -13240,7 +15762,7 @@
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "quiet-note",
-					children: "Sample reflections from the prototype."
+					children: reveal ? "Illustrative visitor reflections · no live community data." : "Sharing is always optional."
 				})
 			]
 		});
@@ -13510,8 +16032,8 @@
 			]
 		});
 	}
-	function DesktopCompanion() {
-		const { mode, feeling, signal, feelingChosen } = useWristband();
+	function DesktopCompanion({ go }) {
+		const { mode, signal, lightLabel, wifiConnected } = useWristband();
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("aside", {
 			className: "desktop-companion",
 			children: [
@@ -13549,7 +16071,23 @@
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WristbandPreview, { large: true }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "band-card-bottom",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "colour-dot" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: signal === "scanning" ? "A new encounter awaits" : signal === "saved" ? "A moment, kept" : signal === "idle" ? "Ready for your next encounter" : mode === "team" && !feelingChosen ? "Together in light" : feeling }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Your light follows your experience." })] })]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "colour-dot" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: lightLabel }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: wifiConnected ? "Board linked · Wi-Fi light control." : "Preview only · connect from the colour studio." })] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "desktop-studio-entry",
+							type: "button",
+							onClick: () => go("device"),
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "spark",
+									size: 15
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Open colour studio" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
+									name: "arrow",
+									size: 15
+								})
+							]
 						})
 					]
 				}),
@@ -13562,23 +16100,31 @@
 	}
 	function initialRoute() {
 		const query = new URLSearchParams(window.location.search);
+		const screen = ROUTES.includes(query.get("screen")) ? query.get("screen") : "welcome";
+		const artwork = Math.max(0, Math.min(5, Math.floor(Number(query.get("artwork")) || 0)));
+		const requestedEcho = query.get("echo");
 		return {
-			screen: ROUTES.includes(query.get("screen")) ? query.get("screen") : "welcome",
-			artwork: Math.max(0, Math.min(5, Math.floor(Number(query.get("artwork")) || 0))),
+			screen,
+			artwork,
+			echoArtwork: screen === "collectionArt" ? "collection-" + artwork : ["detail", "downloaded"].includes(screen) ? "monet" : /^monet$|^collection-[0-5]$/.test(requestedEcho || "") ? requestedEcho : "monet",
+			browseWithoutEcho: false,
 			location: Math.max(11, Math.min(16, Math.floor(Number(query.get("location")) || 11)))
 		};
 	}
 	function GalleryApp() {
 		const [route, setRoute] = (0, import_react.useState)(initialRoute), [viewed, setViewed] = (0, import_react.useState)(6), [uploads, setUploads] = (0, import_react.useState)([]), [liked, setLiked] = (0, import_react.useState)({});
-		const { setSignal, setMode } = useWristband();
-		const viewport = (0, import_react.useRef)(null), routeRef = (0, import_react.useRef)(route), depth = (0, import_react.useRef)(0), transitionLayer = (0, import_react.useRef)(null), transitionTimer = (0, import_react.useRef)(null), objectURLs = (0, import_react.useRef)([]);
+		const [echoes, setEchoes] = (0, import_react.useState)(readEchoes);
+		const { setSignal, setMode, setFeeling, triggerFeedback, quietMode } = useWristband();
+		const viewport = (0, import_react.useRef)(null), routeRef = (0, import_react.useRef)(route), depth = (0, import_react.useRef)(0), transitionLayer = (0, import_react.useRef)(null), transitionTimer = (0, import_react.useRef)(null), objectURLs = (0, import_react.useRef)([]), quietRef = (0, import_react.useRef)(quietMode), echoesRef = (0, import_react.useRef)(echoes);
 		const screen = route.screen;
 		routeRef.current = route;
+		quietRef.current = quietMode;
+		echoesRef.current = echoes;
 		const showRoute = (0, import_react.useCallback)((next) => {
 			const layer = transitionLayer.current;
 			clearTimeout(transitionTimer.current);
 			layer?.replaceChildren();
-			if (viewport.current && layer && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			if (viewport.current && layer && !quietRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 				const previous = viewport.current;
 				const snapshot = previous.cloneNode(true);
 				snapshot.className = "route-snapshot";
@@ -13600,19 +16146,28 @@
 				...params,
 				screen: nextScreen
 			};
-			if (nextScreen === current.screen && next.artwork === current.artwork && next.location === current.location) return;
+			if (nextScreen === "collectionArt") next.echoArtwork = "collection-" + next.artwork;
+			if (["detail", "downloaded"].includes(nextScreen)) next.echoArtwork = "monet";
+			next.browseWithoutEcho = nextScreen === "shared" && params.browseWithoutEcho === true;
+			if (nextScreen === current.screen && next.artwork === current.artwork && next.location === current.location && next.echoArtwork === current.echoArtwork && next.browseWithoutEcho === current.browseWithoutEcho) return;
 			if (nextScreen === "detail" && current.screen === "proximity") setViewed(7);
 			const url = new URL(window.location.href);
 			url.searchParams.set("screen", nextScreen);
 			url.searchParams.set("artwork", next.artwork);
 			url.searchParams.set("location", next.location);
+			url.searchParams.set("echo", next.echoArtwork);
+			if (echoes[next.echoArtwork]) setFeeling(echoes[next.echoArtwork].feeling, { preserveCustom: true });
 			depth.current += 1;
 			window.history.pushState({
 				route: next,
 				echoDepth: depth.current
 			}, "", url);
 			showRoute(next);
-		}, [showRoute]);
+		}, [
+			showRoute,
+			echoes,
+			setFeeling
+		]);
 		go.back = () => {
 			if (depth.current > 0) window.history.back();
 			else go(screen === "mode" ? "welcome" : "home");
@@ -13624,11 +16179,13 @@
 			}, "", window.location.href);
 			const pop = (event) => {
 				depth.current = event.state?.echoDepth || 0;
-				showRoute(event.state?.route || initialRoute());
+				const next = event.state?.route || initialRoute();
+				if (echoesRef.current[next.echoArtwork]) setFeeling(echoesRef.current[next.echoArtwork].feeling, { preserveCustom: true });
+				showRoute(next);
 			};
 			window.addEventListener("popstate", pop);
 			return () => window.removeEventListener("popstate", pop);
-		}, [showRoute]);
+		}, [showRoute, setFeeling]);
 		(0, import_react.useEffect)(() => {
 			viewport.current?.scrollTo({ top: 0 });
 			viewport.current?.querySelector("h1")?.focus({ preventScroll: true });
@@ -13644,6 +16201,9 @@
 			else setSignal("connected");
 		}, [
 			screen,
+			route.artwork,
+			route.location,
+			route.echoArtwork,
 			setSignal,
 			setMode
 		]);
@@ -13651,6 +16211,26 @@
 			clearTimeout(transitionTimer.current);
 			objectURLs.current.forEach((url) => URL.revokeObjectURL(url));
 		}, []);
+		(0, import_react.useEffect)(() => {
+			if (echoes[route.echoArtwork]) setFeeling(echoes[route.echoArtwork].feeling, { preserveCustom: true });
+		}, [route.echoArtwork, setFeeling]);
+		const art = echoArtwork(route.echoArtwork), echo = echoes[route.echoArtwork];
+		const onSubmitEcho = (feeling) => {
+			const next = {
+				...echoes,
+				[route.echoArtwork]: {
+					feeling,
+					submittedAt: Date.now()
+				}
+			};
+			setEchoes(next);
+			setFeeling(feeling);
+			setSignal("connected");
+			try {
+				localStorage.setItem(ECHO_STORAGE, JSON.stringify(next));
+			} catch {}
+			triggerFeedback("submitted", "Your " + feelingColour(feeling).toLowerCase() + " echo has been added.");
+		};
 		const onShare = (file, identity) => {
 			const preview = URL.createObjectURL(file);
 			objectURLs.current.push(preview);
@@ -13679,17 +16259,40 @@
 				viewed,
 				sketchCount: 1 + uploads.length
 			}),
+			device: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DeviceColourScreen, { go }),
 			proximity: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScanScreen, { go }),
-			detail: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArtworkDetail, { go }),
+			detail: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArtworkDetail, {
+				go,
+				echo,
+				onSubmit: onSubmitEcho
+			}),
 			downloaded: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArtworkDetail, {
 				go,
-				downloaded: true
+				downloaded: true,
+				echo,
+				onSubmit: onSubmitEcho
 			}),
-			thought: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Thought, { go }),
-			capture: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CaptureResponse, { go }),
-			collective: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollectiveVisual, { go }),
+			thought: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Thought, {
+				go,
+				art,
+				echo,
+				onSubmit: onSubmitEcho
+			}),
+			capture: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CaptureResponse, {
+				go,
+				art,
+				echo,
+				onSubmit: onSubmitEcho
+			}),
+			collective: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollectiveVisual, {
+				go,
+				art,
+				echo
+			}),
 			sharedSuccess: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollectiveVisual, {
 				go,
+				art,
+				echo,
 				shared: true
 			}),
 			saved: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SavedPhotos, { go }),
@@ -13699,7 +16302,9 @@
 			}),
 			collectionArt: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollectionArtwork, {
 				go,
-				index: route.artwork
+				index: route.artwork,
+				echo,
+				onSubmit: onSubmitEcho
 			}),
 			unvisited: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Unvisited, { go }),
 			location: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArtworkLocation, {
@@ -13710,7 +16315,12 @@
 				go,
 				viewed
 			}),
-			shared: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SharedReflections, { go }),
+			shared: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SharedReflections, {
+				go,
+				art,
+				echo,
+				explicitBrowse: route.browseWithoutEcho
+			}),
 			sketches: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisitorSketches, {
 				go,
 				sketches,
@@ -13740,7 +16350,7 @@
 		].includes(screen);
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 			className: "app-shell",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DesktopCompanion, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DesktopCompanion, { go }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "phone" + (immersive ? " immersive" : ""),
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -13761,7 +16371,7 @@
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: "route-stage",
 							children: screens[screen]
-						}, screen + route.artwork + route.location)
+						}, screen + route.artwork + route.location + route.echoArtwork + route.browseWithoutEcho)
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "transition-layer",
