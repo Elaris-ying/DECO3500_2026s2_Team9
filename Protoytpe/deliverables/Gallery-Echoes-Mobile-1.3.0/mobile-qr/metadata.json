@@ -1,0 +1,46 @@
+{
+  "generator": "ReportLab 4.4.9 QR encoder; Pillow integer-pixel raster",
+  "artifacts": [
+    {
+      "name": "gallery-echoes-app-qr",
+      "payload": "http://192.168.4.1/",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "1e45eca63374dc6f66853e2391e78db9658876edac2188723c8ef7b0be76b8f1",
+      "svg_sha256": "358f540b864c8aee0bbfe6ff83c30bb2a29ca2927671d4c8157c9c9d861f909e",
+      "matrix_sha256": "99cfb158faea56f39d5579169ad67bdc296b21444e5de985402291422588b989"
+    },
+    {
+      "name": "gallery-echoes-wifi-qr",
+      "payload": "WIFI:T:nopass;S:GalleryEchoes;;",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "b87d65cfae93711d73e1f58c7dd47f50df95da956c2d4314f7924fffbc871eed",
+      "svg_sha256": "8c30c872e36400f07aac39a2f7d6475fe8c762544023248536683ebac966adfb",
+      "matrix_sha256": "f1818f83a6af19e36e3b84f0c3635bc61cb8aa6b7301fb7ba2a0baf0ceb642e8"
+    }
+  ],
+  "scan_card": "scan-card.html",
+  "verification": "PNG pixels, complete white quiet zone and encoded matrix checked. No independent QR decoder or real phone scan has been used.",
+  "limits": "The Wi-Fi QR joins the network; the URL QR opens the local web app after joining. The board must serve the app at http://192.168.4.1/ and remain powered."
+}

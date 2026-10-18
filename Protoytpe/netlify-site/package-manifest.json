@@ -1,0 +1,219 @@
+{
+  "format": 1,
+  "status": "ready-to-deploy",
+  "deployed": false,
+  "source": "online-site/dist",
+  "publish": "dist",
+  "basePath": "/",
+  "applicationFileCount": 40,
+  "applicationBytes": 1325000,
+  "addedFiles": [
+    {
+      "path": "dist/_headers",
+      "bytes": 123,
+      "sha256": "4ada9bfc8a8f5b9e518194009f40ff79111ad52b43ae5c59926176ee6300259f"
+    }
+  ],
+  "applicationFiles": [
+    {
+      "path": "app-icon-192.png",
+      "bytes": 6036,
+      "sha256": "c02cce34ab665bab4fab535e8a96999d3247ace96ab2df5633b7d77b1c831e59"
+    },
+    {
+      "path": "app-icon-512.png",
+      "bytes": 21246,
+      "sha256": "860ce6d529c1f6392eedf5809a4477ac8b446ef08f086d5ba3dc0f81c8cb7793"
+    },
+    {
+      "path": "app-icon.svg",
+      "bytes": 301,
+      "sha256": "ab3cb8ad1e6d3bc3e2340e9d11b5ef1651e81c576c01aa00775dbb55d8f609da"
+    },
+    {
+      "path": "dist/app.js",
+      "bytes": 326982,
+      "sha256": "ce97656a9218f1a13eb7a26133a29d54466d92b5ef8f6177b831349cc665ba0f"
+    },
+    {
+      "path": "dist/style.css",
+      "bytes": 85666,
+      "sha256": "c1e20d5f2ebe5c6a4520d7602055b013605bed3a9897188ef7e2374a3f49011c"
+    },
+    {
+      "path": "index.html",
+      "bytes": 1067,
+      "sha256": "329d954c16102dfe0e0488e8ddd676fad9806f36865650997cc3c787589a2d96"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "bytes": 291,
+      "sha256": "33ec08ff623dbba6ca9c3554474f4794c73ac551a640c91f8bb9efb87a097390"
+    },
+    {
+      "path": "online-bootstrap.js",
+      "bytes": 211,
+      "sha256": "fbce5f53a81f31e3c742b126e704d81adc8c61f59b7f59db18fff08f65abc32f"
+    },
+    {
+      "path": "public/assets/collection-01.webp",
+      "bytes": 44276,
+      "sha256": "a34c3f16e493235feb0468854182f412287febe29b33d715f6b656c41a5a3b0e"
+    },
+    {
+      "path": "public/assets/collection-02.webp",
+      "bytes": 76852,
+      "sha256": "3b035b1e3c468e807b079bf0b90290cc9ed67d9889bb9315bb8a1f85e9b046ac"
+    },
+    {
+      "path": "public/assets/collection-03.webp",
+      "bytes": 59066,
+      "sha256": "92bfb963fa240731693607e432caf2446da719c750c8da1267a0eaa24c901a81"
+    },
+    {
+      "path": "public/assets/collection-04.webp",
+      "bytes": 72632,
+      "sha256": "f3fde5351b57e958e5d2971823ff0b81fb694f4d0343b1434b318ab68ee773b5"
+    },
+    {
+      "path": "public/assets/collection-05.webp",
+      "bytes": 47386,
+      "sha256": "85f46f24c7ed2ff9320d2fc6ac1b70e4dc14dd9f9e4eb7c59dad5a147b2e501e"
+    },
+    {
+      "path": "public/assets/collection-06.webp",
+      "bytes": 54532,
+      "sha256": "5b4a420e89439765ca976e8c1be3478a079cc97742ef833e2c124fe0f59a51fc"
+    },
+    {
+      "path": "public/assets/collective-visual.webp",
+      "bytes": 2402,
+      "sha256": "03053e93101287c24b32e0eb35fce8e09c2b11fb6828dda1989106527179ca12"
+    },
+    {
+      "path": "public/assets/feeling-reference.webp",
+      "bytes": 58472,
+      "sha256": "c7ebf94c3a9772dd0612f271097a84d45785faf7c2ebd49a0964e548f53520d2"
+    },
+    {
+      "path": "public/assets/figma-mode-personal.svg",
+      "bytes": 642,
+      "sha256": "138f5346dbb5d0ad2e02ddbf9b5da6f946af1aa9a93a3cbd76b85fce06a853d3"
+    },
+    {
+      "path": "public/assets/figma-team-symbol.svg",
+      "bytes": 1755,
+      "sha256": "de41115b4323ebedd49ebda69608bb0fa7f6ce5cce05eee1ca5ddaf5d713801e"
+    },
+    {
+      "path": "public/assets/figma-welcome-bottom.svg",
+      "bytes": 637,
+      "sha256": "279d31fa7dac501bb836fc41f669864ea25351f17dbb793a56a0ff092c7a04f1"
+    },
+    {
+      "path": "public/assets/figma-welcome-left.svg",
+      "bytes": 639,
+      "sha256": "611aa58aa060f1eccd39f254361a885f8cbb569bb11f6b7dcc5f01972b04650a"
+    },
+    {
+      "path": "public/assets/figma-welcome-top.svg",
+      "bytes": 685,
+      "sha256": "9f6f777d4abae06415a4a6c534e3d1d170a12bf20d280652104d4522bb48e68a"
+    },
+    {
+      "path": "public/assets/my-sketch.webp",
+      "bytes": 13528,
+      "sha256": "07289ec818336d0616179fbc75ee7f1dc4a4d83a149cbe62841dea9772eb8469"
+    },
+    {
+      "path": "public/assets/nfc-card.webp",
+      "bytes": 4922,
+      "sha256": "03df41def2fafe329167bd5621a006bdc0f9a222610ae95d61b1052d633f3e69"
+    },
+    {
+      "path": "public/assets/nfc-proximity-bg.webp",
+      "bytes": 27368,
+      "sha256": "8b2ff42fde8851c7eb53480acdd03fdc462de4c2b9c4ee6350db6a09b380c0d9"
+    },
+    {
+      "path": "public/assets/pair-team-bg.webp",
+      "bytes": 17958,
+      "sha256": "0171c70d512c8e3eb6eeb168866a6ac2700f7e605b7a808c1e0c7f9e0672e5ad"
+    },
+    {
+      "path": "public/assets/reflection-art.webp",
+      "bytes": 76308,
+      "sha256": "6b90d1cf891391672d4187a385f24d887f4b32ed6dab1ae31cedd49a4925e488"
+    },
+    {
+      "path": "public/assets/shared-sketch.webp",
+      "bytes": 13528,
+      "sha256": "07289ec818336d0616179fbc75ee7f1dc4a4d83a149cbe62841dea9772eb8469"
+    },
+    {
+      "path": "public/assets/shared-visual.webp",
+      "bytes": 1750,
+      "sha256": "09af5c312521b859bdef631ba805241fe0422298b08fd36def5234f98c44b224"
+    },
+    {
+      "path": "public/assets/sketch-anonymous.webp",
+      "bytes": 6312,
+      "sha256": "5bf26db5cc20a6163b24b7c53ac4517e3cede3746d0dfecd624241902d6a145b"
+    },
+    {
+      "path": "public/assets/sketch-leo.webp",
+      "bytes": 11130,
+      "sha256": "82d79b9bb274b1d35623581d4911fa007b4b246434d04b10d1b7f9369e4da7eb"
+    },
+    {
+      "path": "public/assets/sketch-mia.webp",
+      "bytes": 24862,
+      "sha256": "91a73d62e0194f5eae52da64984e9c2454b0d29b02699702685193ec0a622977"
+    },
+    {
+      "path": "public/assets/sketch-rina.webp",
+      "bytes": 12996,
+      "sha256": "63672c7cc1e1ed36bdd6fb0a2a9b51691c63df15a8b3ed24894cb225174a458a"
+    },
+    {
+      "path": "public/assets/unvisited-11.webp",
+      "bytes": 22410,
+      "sha256": "08ae2521c4e7f253bbc449b2730879902e0658feffb8d8303addd262e544f4e8"
+    },
+    {
+      "path": "public/assets/unvisited-12.webp",
+      "bytes": 76852,
+      "sha256": "3b035b1e3c468e807b079bf0b90290cc9ed67d9889bb9315bb8a1f85e9b046ac"
+    },
+    {
+      "path": "public/assets/unvisited-13.webp",
+      "bytes": 25648,
+      "sha256": "b24095b07ada38a7ab9d30d771b08a3291da9c3a0aa149c91847c1180f7d5f15"
+    },
+    {
+      "path": "public/assets/unvisited-14.webp",
+      "bytes": 13264,
+      "sha256": "0e39f2fe131da83977146f2b442ee6e63761588040aba54ef2bec24af903705f"
+    },
+    {
+      "path": "public/assets/unvisited-15.webp",
+      "bytes": 16174,
+      "sha256": "ef02de61a3eca2760399035096b276221c8ee4fce895db3c0e265e2627996b49"
+    },
+    {
+      "path": "public/assets/unvisited-16.webp",
+      "bytes": 13950,
+      "sha256": "1e3e5804031991728fcc549d472f87be30a5e34ba9b0f8b154432756a5966628"
+    },
+    {
+      "path": "public/assets/water-lilies.webp",
+      "bytes": 82084,
+      "sha256": "ac0f3be3d9d84065da43c0ab46237ef39b5a299ad36b5a0e67d64af1e02a4e1f"
+    },
+    {
+      "path": "sw.js",
+      "bytes": 2180,
+      "sha256": "0b938800bdbf5c6810fc7fa80ed7b9f4cd5d9c59aed114ac1d1377a020264163"
+    }
+  ]
+}

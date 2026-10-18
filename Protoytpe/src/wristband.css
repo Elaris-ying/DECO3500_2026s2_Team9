@@ -1,0 +1,168 @@
+/* 所有样式限定在体验容器内，手环组件可独立插入 Header、扫描页和桌面侧栏。 */
+.echo-experience .wb-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.echo-experience .wb-status { position: relative; z-index: 60; width: fit-content; }
+.echo-experience .wb-status button { font-family: inherit; cursor: pointer; }
+.echo-experience .wb-status-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 9px 12px; border: 1px solid rgba(114, 101, 81, .16); border-radius: 24px; background: rgba(253, 251, 246, .84); color: #655c51; font-size: 10px; line-height: 1.25; letter-spacing: .02em; transition: border-color .35s ease, background .35s ease, box-shadow .35s ease; }
+.echo-experience .wb-status-trigger:hover, .echo-experience .wb-status-trigger[aria-expanded="true"] { border-color: rgba(var(--echo-rgb), .6); background: var(--echo-soft); box-shadow: 0 3px 12px rgba(var(--echo-rgb), .08); }
+.echo-experience .wb-status-light { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background-color: var(--echo-led); box-shadow: 0 0 0 3px rgba(var(--echo-led-rgb), calc(.13 * var(--echo-light-intensity))), 0 0 8px rgba(var(--echo-led-rgb), calc(.25 * var(--echo-light-intensity))); animation: wb-indicator-breathe 3.8s ease-in-out infinite; transition: background-color .3s ease, box-shadow .3s ease; }
+.echo-experience .wb-status-light[data-signal="scanning"] { animation-duration: 1.7s; }
+.echo-experience .wb-status-chevron { width: 12px; height: 12px; flex: 0 0 12px; transition: transform .3s ease; }
+.echo-experience .wb-status-trigger[aria-expanded="true"] .wb-status-chevron { transform: rotate(180deg); }
+.echo-experience .wb-status-compact .wb-status-trigger { min-height: 32px; padding: 7px 10px; font-size: 10px; }
+.echo-experience .wb-status button:focus-visible { outline: 2px solid var(--echo-ink); outline-offset: 3px; }
+
+/* 非模态浮层保留自然 Tab 顺序；其本身不拦截主界面滚动或键盘操作。 */
+.echo-experience .wb-popover { position: absolute; box-sizing: border-box; top: calc(100% + 12px); left: var(--wb-popover-left, 0); width: var(--wb-popover-width, min(320px, calc(100vw - 40px))); max-height: var(--wb-popover-max-height, 560px); overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; scrollbar-width: thin; scrollbar-color: #d9d1c3 transparent; padding: 23px 22px 18px; border: 1px solid rgba(123, 108, 88, .16); border-radius: 24px; background: #fcfaf5; color: #322d27; box-shadow: 0 18px 50px rgba(56, 45, 30, .14), 0 2px 5px rgba(56, 45, 30, .04); animation: wb-popover-enter .32s cubic-bezier(.2, .65, .3, 1) both; }
+.echo-experience .wb-popover-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.echo-experience .wb-eyebrow { margin: 0 0 7px; color: #8a8071; font-size: 8px; line-height: 1.4; font-weight: 600; letter-spacing: .18em; }
+.echo-experience .wb-popover h2 { margin: 0; color: #332d26; font-family: Georgia, 'Times New Roman', serif; font-size: 23px; line-height: 1.2; font-weight: 400; letter-spacing: -.5px; }
+.echo-experience .wb-close { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 5px; margin: -6px -6px 0 0; border: 1px solid transparent; border-radius: 50%; color: #746a5f; background: transparent; transition: background .2s ease; }
+.echo-experience .wb-close:hover { background: #f0ece4; }
+.echo-experience .wb-close svg { width: 15px; height: 15px; }
+.echo-experience .wb-light-caption { display: flex; align-items: center; gap: 11px; margin-top: 2px; }
+.echo-experience .wb-caption-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--echo-color); box-shadow: 0 0 0 5px rgba(var(--echo-rgb), .1); transition: background .6s ease, box-shadow .6s ease; }
+.echo-experience .wb-light-caption div { display: flex; flex-direction: column; gap: 3px; }
+.echo-experience .wb-light-caption strong { color: var(--echo-ink); font-size: 13px; line-height: 1.4; font-weight: 600; transition: color .6s ease; }
+.echo-experience .wb-light-caption div > span { color: #7f7569; font-size: 10px; line-height: 1.4; }
+.echo-experience .wb-signal-description { min-height: 34px; margin: 12px 0 18px; color: #81766a; font-size: 10px; line-height: 1.7; }
+.echo-experience .wb-prototype-note { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 20px 0 4px; color: #82786c; font-size: 9px; line-height: 1.5; letter-spacing: .01em; }
+.echo-experience .wb-prototype-note > span { font-size: 13px; }
+.echo-experience .wb-hardware-note { margin: 0; color: #8a8176; font-size: 8px; line-height: 1.6; text-align: center; }
+
+/* 固定比例的矢量腕带，几何形状在不同预览尺寸中保持一致。 */
+.echo-experience .wb-preview-group { width: 100%; min-width: 0; max-width: 100%; }
+.echo-experience .wb-preview { position: relative; isolation: isolate; width: 250px; max-width: 100%; height: 172px; margin: 0 auto; }
+.echo-experience .wb-preview-large { width: 320px; height: 218px; }
+.echo-experience .wb-preview-halo { position: absolute; z-index: -1; inset: 8% -3% 10%; border-radius: 50%; background-color: rgba(var(--echo-led-rgb), calc(.3 * var(--echo-light-intensity))); mask-image: radial-gradient(ellipse, #000 12%, transparent 70%); filter: blur(11px); animation: wb-halo-breathe 4.4s ease-in-out infinite; transition: background-color .3s ease; }
+.echo-experience .wb-band-motion { position: absolute; inset: 0 0 28px; }
+.echo-experience .wb-model { display: block; width: 100%; height: 100%; overflow: visible; }
+/* 灯带沿前侧曲线嵌入硅胶，颜色与亮度仍来自同一个设备状态。 */
+.echo-experience .wb-model-led { stroke: var(--echo-led); animation: wb-led-breathe 4.4s ease-in-out infinite; transition: stroke .3s ease; }
+.echo-experience .wb-model-led-glow { stroke: var(--echo-led); opacity: calc(.32 * var(--echo-light-intensity)); transition: stroke .3s ease, opacity .3s ease; }
+.echo-experience .wb-model-led-highlight { stroke: #fffdf8; opacity: calc(.6 * var(--echo-light-intensity)); transition: opacity .3s ease; }
+.echo-experience .wb-preview-colour { position: absolute; left: 0; right: 0; bottom: 1px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 5px; color: var(--echo-ink); font-size: 9px; line-height: 1.5; letter-spacing: .025em; text-align: center; transition: color .3s ease; }
+.echo-experience .wb-preview-colour > i { width: 5px; height: 5px; border-radius: 50%; background-color: var(--echo-color); transition: background-color .7s ease; }
+.echo-experience .wb-preview[data-signal="scanning"] .wb-model-led, .echo-experience .wb-preview[data-signal="scanning"] .wb-preview-halo { animation-duration: 1.7s; }
+.echo-experience .wb-feedback-wave { position: absolute; inset: 13% 10% 18%; z-index: -1; border: 1px solid rgba(var(--echo-led-rgb), calc(.65 * var(--echo-light-intensity))); border-radius: 50%; animation: wb-acknowledge 1.5s ease-out both; pointer-events: none; }
+.echo-experience .wb-band-motion[data-haptic="true"] { animation: wb-haptic-nudge .46s ease-in-out both; }
+
+/* 四张完整卡片以原生 scroll-snap 滑动，独立处理横向手势，不禁用纵向滚动。 */
+.echo-experience .wb-feeling-rail { min-width: 0; width: 100%; max-width: 100%; margin: 16px 0 20px; padding-top: 17px; border-top: 1px solid #e5dfd3; }
+.echo-experience .wb-rail-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.echo-experience .wb-rail-heading > h3 { margin: 0; color: #6d6256; font: 500 10px/1.4 'Segoe UI', Arial, sans-serif; }
+.echo-experience .wb-rail-heading > span { color: #9c9183; font-size: 8px; letter-spacing: .06em; }
+.echo-experience .wb-rail-track { position: relative; display: flex; gap: 12px; width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; touch-action: pan-x pan-y pinch-zoom; cursor: grab; user-select: none; }
+.echo-experience .wb-rail-track::-webkit-scrollbar { display: none; }
+.echo-experience .wb-rail-track.is-dragging { scroll-snap-type: none; cursor: grabbing; }
+.echo-experience .wb-colour-card { display: flex; flex: 0 0 100%; box-sizing: border-box; align-items: center; gap: 12px; min-width: 0; min-height: 90px; padding: 14px; border: 1px solid #e8e1d6; border-radius: 16px; background-color: #f7f3eb; background-image: linear-gradient(115deg, var(--wb-card-soft), rgba(252, 250, 245, .62)); color: #5f5549; text-align: left; scroll-snap-align: start; scroll-snap-stop: always; cursor: inherit; font-family: inherit; transition: border-color .35s ease, box-shadow .35s ease; }
+.echo-experience .wb-colour-card:hover { border-color: var(--wb-card-colour); }
+.echo-experience .wb-colour-card[aria-pressed="true"] { border-color: var(--wb-card-colour); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7); }
+.echo-experience .wb-colour-orb { width: 37px; height: 37px; flex: 0 0 37px; border-radius: 50%; background-color: var(--wb-card-colour); background-image: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .65), transparent 72%); box-shadow: 0 0 20px var(--wb-card-soft), inset 0 1px 2px rgba(255, 255, 255, .5); }
+.echo-experience .wb-colour-card-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.echo-experience .wb-colour-card-copy > strong { color: var(--wb-card-ink); font-size: 13px; font-weight: 500; line-height: 1.3; }
+.echo-experience .wb-colour-card-copy > span { font-size: 9px; line-height: 1.4; color: #776b5d; }
+.echo-experience .wb-colour-card-copy > small { color: #8d8071; font-size: 8px; line-height: 1.5; }
+.echo-experience .wb-colour-card-check { margin-left: auto; align-self: flex-start; color: var(--wb-card-ink); font-size: 12px; line-height: 1; }
+.echo-experience .wb-rail-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 7px; }
+.echo-experience .wb-rail-arrow { display: grid; place-items: center; width: 32px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #756956; cursor: pointer; }
+.echo-experience .wb-rail-arrow:not(:disabled):hover { background: #f0eade; }
+.echo-experience .wb-rail-arrow > svg { width: 15px; height: 15px; }
+.echo-experience .wb-rail-arrow:disabled { opacity: .25; cursor: default; }
+.echo-experience .wb-rail-dots { display: flex; align-items: center; gap: 1px; }
+.echo-experience .wb-rail-dot { display: grid; place-items: center; width: 27px; height: 28px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.echo-experience .wb-rail-dot > span { display: block; width: 5px; height: 5px; border-radius: 50%; background-color: var(--wb-dot-colour); opacity: .55; transition: width .3s ease, opacity .3s ease; }
+.echo-experience .wb-rail-dot[data-current="true"] > span { width: 15px; border-radius: 4px; opacity: 1; }
+.echo-experience .wb-rail-instruction { margin: 0; text-align: center; font-size: 8px; line-height: 1.5; color: #8f8373; }
+.echo-experience .wb-rail-track:focus-visible, .echo-experience .wb-colour-card:focus-visible { outline: 2px solid var(--echo-ink); outline-offset: -3px; border-radius: 16px; }
+.echo-experience .wb-feeling-rail button:focus-visible { outline: 2px solid var(--echo-ink); outline-offset: 2px; }
+.echo-experience .wb-feeling-rail .wb-colour-card:focus-visible { outline-offset: -3px; }
+.echo-experience .wb-feeling-rail-compact { margin-top: 17px; margin-bottom: 17px; padding-top: 14px; }
+.echo-experience .wb-feeling-rail-compact .wb-colour-card { min-height: 74px; padding: 11px 13px; }
+.echo-experience .wb-feeling-rail-compact .wb-colour-orb { width: 32px; height: 32px; flex-basis: 32px; }
+.echo-experience .wb-feeling-rail-compact .wb-colour-card-copy > small { display: none; }
+
+/* 设置只控制原型：静音保持光线稳定，振动开关只展示短暂的屏幕轻颤。 */
+.echo-experience .wb-preferences { padding-top: 18px; border-top: 1px solid #e5dfd3; }
+.echo-experience .wb-preferences-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.echo-experience .wb-preferences-heading > h3 { margin: 0; color: #64594c; font: 500 11px/1.4 'Segoe UI', Arial, sans-serif; }
+.echo-experience .wb-preferences-heading > span { color: #a29482; font-size: 7px; line-height: 1.4; }
+.echo-experience .wb-preference-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; }
+.echo-experience .wb-preference-row strong { color: #6c5f50; font-size: 10px; font-weight: 500; line-height: 1.4; }
+.echo-experience .wb-preference-row p { margin: 3px 0 0; color: #918472; font-size: 8px; line-height: 1.5; }
+.echo-experience .wb-preference-switch { position: relative; display: block; flex: 0 0 44px; width: 44px; height: 38px; padding: 0; border: 0; border-radius: 14px; background: transparent; }
+.echo-experience .wb-preference-switch::before { content: ''; position: absolute; left: 5px; right: 5px; top: 9px; height: 21px; box-sizing: border-box; border: 1px solid #d9d0c2; border-radius: 14px; background-color: #e6dfd3; transition: background-color .3s ease, border-color .3s ease; }
+.echo-experience .wb-preference-switch > span { position: absolute; left: 9px; top: 13px; width: 13px; height: 13px; border-radius: 50%; background: #fffdf8; box-shadow: 0 1px 3px rgba(87, 72, 53, .12); transform: translateX(0); transition: transform .3s ease; }
+.echo-experience .wb-preference-switch[aria-checked="true"]::before { background-color: var(--echo-color); border-color: var(--echo-color); }
+.echo-experience .wb-preference-switch[aria-checked="true"] > span { transform: translateX(13px); }
+.echo-experience .wb-feedback-test { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 36px; margin: 9px 0 0; border: 1px solid #e5ddcf; border-radius: 20px; color: #7e705b; background: #f6f1e8; font-size: 9px; line-height: 1.4; }
+.echo-experience .wb-feedback-test > span { font-size: 17px; }
+.echo-experience .wb-open-studio { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 53px; margin: 15px 0 18px; padding: 12px 14px; border: 1px solid #d6c9b4; border-radius: 16px; background: #f1eadd; color: #766347; text-align: left; }
+.echo-experience .wb-open-studio > span:first-child { display: flex; flex-direction: column; gap: 5px; }
+.echo-experience .wb-open-studio strong { font-size: 11px; line-height: 1.4; font-weight: 500; }
+.echo-experience .wb-open-studio small { color: #9a876a; font-size: 8px; line-height: 1.5; }
+.echo-experience .wb-open-studio > span:last-child { font-size: 17px; }
+
+/* 自由调色用短过渡跟随连续拖动，避免沿用情绪换色的长渐变而产生拖尾。 */
+.echo-experience[data-echo-custom="true"] .wb-model-led, .echo-experience[data-echo-custom="true"] .wb-model-led-glow, .echo-experience[data-echo-custom="true"] .wb-preview-halo, .echo-experience[data-echo-custom="true"] .wb-status-light { transition-duration: .12s; }
+
+/* 熄灯、0% 与纯黑不产生光：仍保留 LED 窗口轮廓，页面文字继续使用独立 ink。 */
+.echo-experience[data-echo-light-active="false"] .wb-model-led { stroke: #b1a797; opacity: 1; animation: none !important; transition: none; }
+.echo-experience[data-echo-light-active="false"] .wb-model-led-glow, .echo-experience[data-echo-light-active="false"] .wb-model-led-highlight, .echo-experience[data-echo-light-active="false"] .wb-preview-halo, .echo-experience[data-echo-light-active="false"] .wb-feedback-wave { opacity: 0; animation: none !important; transition: none; }
+.echo-experience[data-echo-light-active="false"] .wb-status-light { animation: none !important; background-color: #b3aa9c; box-shadow: 0 0 0 2px #e7e0d4; transition: none; }
+
+@keyframes wb-popover-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes wb-led-breathe { 0%, 100% { opacity: .74; } 50% { opacity: 1; } }
+@keyframes wb-halo-breathe { 0%, 100% { opacity: .5; transform: scale(.96); } 50% { opacity: .95; transform: scale(1.04); } }
+@keyframes wb-indicator-breathe { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
+@keyframes wb-acknowledge { 0% { opacity: 0; transform: scale(.82) rotate(-16deg); } 20% { opacity: .75; } 100% { opacity: 0; transform: scale(1.25) rotate(-16deg); } }
+@keyframes wb-haptic-nudge { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-1.5px); } 40%, 80% { transform: translateX(1.5px); } }
+
+.echo-experience[data-echo-quiet="true"] .wb-model-led, .echo-experience[data-echo-quiet="true"] .wb-preview-halo, .echo-experience[data-echo-quiet="true"] .wb-status-light, .echo-experience[data-echo-quiet="true"] .wb-feedback-wave, .echo-experience[data-echo-quiet="true"] .wb-band-motion { animation: none !important; }
+.echo-experience[data-echo-quiet="true"] .wb-feedback-wave { opacity: 0; }
+.echo-experience[data-echo-vibration="false"] .wb-band-motion { animation: none !important; }
+
+/* 尊重系统减少动态效果的设置；保留静态颜色与文字状态提示。 */
+@media (prefers-reduced-motion: reduce) {
+  .echo-experience .wb-status *, .echo-experience .wb-preview, .echo-experience .wb-preview *, .echo-experience .wb-feeling-rail, .echo-experience .wb-feeling-rail * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .echo-experience .wb-feedback-wave { opacity: 0; }
+}
+
+/* 真机触控保留细腻造型，扩大的是可点击范围和说明字号。 */
+@media (max-width: 520px), (max-width: 950px) and (pointer: coarse), (max-width: 950px) and (max-height: 520px) {
+  .echo-experience .wb-status-trigger,.echo-experience .wb-status-compact .wb-status-trigger { min-height: 44px; padding: 9px 11px; font-size: 11px; }
+  .echo-experience .wb-popover { padding: 20px 18px 18px; }
+  .echo-experience .wb-popover h2 { font-size: 25px; }
+  .echo-experience .wb-eyebrow { font-size: 9px; }
+  .echo-experience .wb-close { width: 44px; height: 44px; flex-basis: 44px; margin: -10px -10px 0 0; }
+  .echo-experience .wb-close svg { width: 18px; height: 18px; }
+  .echo-experience .wb-light-caption strong { font-size: 14px; }
+  .echo-experience .wb-light-caption div > span { font-size: 11px; line-height: 1.6; }
+  .echo-experience .wb-signal-description { font-size: 11px; line-height: 1.8; }
+  .echo-experience .wb-preview-colour { font-size: 10px; line-height: 1.6; }
+  .echo-experience .wb-colour-card { min-height: 100px; padding: 15px; }
+  .echo-experience .wb-colour-card-copy > strong { font-size: 15px; }
+  .echo-experience .wb-colour-card-copy > span { font-size: 11px; }
+  .echo-experience .wb-colour-card-copy > small { font-size: 10px; }
+  .echo-experience .wb-feeling-rail-compact .wb-colour-card { min-height: 84px; padding: 13px; }
+  .echo-experience .wb-feeling-rail-compact .wb-colour-card-copy > strong { font-size: 14px; }
+  .echo-experience .wb-rail-heading > h3 { font-size: 12px; }
+  .echo-experience .wb-rail-heading > span { font-size: 9px; }
+  .echo-experience .wb-rail-controls { min-height: 44px; }
+  .echo-experience .wb-rail-arrow { width: 44px; height: 44px; }
+  .echo-experience .wb-rail-dot { width: 38px; height: 44px; }
+  .echo-experience .wb-rail-dots { gap: 0; }
+  .echo-experience .wb-rail-instruction { font-size: 10px; line-height: 1.6; }
+  .echo-experience .wb-preferences-heading > h3 { font-size: 13px; }
+  .echo-experience .wb-preferences-heading > span { font-size: 9px; }
+  .echo-experience .wb-preference-row strong { font-size: 12px; }
+  .echo-experience .wb-preference-row p { font-size: 10px; line-height: 1.65; }
+  .echo-experience .wb-preference-switch { height: 44px; }
+  .echo-experience .wb-preference-switch::before { top: 11px; }
+  .echo-experience .wb-preference-switch > span { top: 15px; }
+  .echo-experience .wb-feedback-test { min-height: 44px; font-size: 11px; }
+  .echo-experience .wb-open-studio { min-height: 65px; }
+  .echo-experience .wb-open-studio strong { font-size: 13px; }
+  .echo-experience .wb-open-studio small { font-size: 11px; line-height: 1.6; }
+  .echo-experience .wb-prototype-note { font-size: 10px; }
+  .echo-experience .wb-hardware-note { font-size: 9px; line-height: 1.75; }
+}

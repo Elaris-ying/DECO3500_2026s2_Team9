@@ -1,0 +1,94 @@
+{
+  "generator": "ReportLab 4.4.9 QR encoder; Pillow integer-pixel raster",
+  "mode": "public-https",
+  "app_url": "https://gallery-echoes-mobile.netlify.app/",
+  "artifacts": [
+    {
+      "name": "gallery-echoes-app-qr",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "bc1d0cd693d5bbd5c199f89c4c60979cfde95ef27716b9d8763d5ff0bd73dfa1",
+      "svg_sha256": "8877223c3f53ffa7a554225cf8ed3880f4fcced33429ee071618bcf00f43f864",
+      "matrix_sha256": "2035ec8d120181e12c8eb9fb2e6a3bf4df23ff6d31d524d2fd4c177383a7f554"
+    },
+    {
+      "name": "gallery-echoes-wifi-qr",
+      "payload": "WIFI:T:nopass;S:GalleryEchoes;;",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "b87d65cfae93711d73e1f58c7dd47f50df95da956c2d4314f7924fffbc871eed",
+      "svg_sha256": "8c30c872e36400f07aac39a2f7d6475fe8c762544023248536683ebac966adfb",
+      "matrix_sha256": "f1818f83a6af19e36e3b84f0c3635bc61cb8aa6b7301fb7ba2a0baf0ceb642e8"
+    },
+    {
+      "name": "gallery-echoes-local-control-qr",
+      "payload": "http://192.168.4.1/?screen=device",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "9c8f394c39b802289585cd7e10a89bb8dad5114fc50500e0a67f06e2b3228f02",
+      "svg_sha256": "b7123f71e379a552cdef4a90bd596c0c582684ad4c2131f5004ec667c322641b",
+      "matrix_sha256": "1d8162fd88124e2e3a5a5de424e1a3d027cc7cfec2ed5661ca633dc711d525c8"
+    }
+  ],
+  "public_aliases": [
+    {
+      "name": "gallery-echoes-online-qr.png",
+      "source": "gallery-echoes-app-qr.png",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "sha256": "bc1d0cd693d5bbd5c199f89c4c60979cfde95ef27716b9d8763d5ff0bd73dfa1"
+    },
+    {
+      "name": "gallery-echoes-netlify-qr.png",
+      "source": "gallery-echoes-app-qr.png",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "sha256": "bc1d0cd693d5bbd5c199f89c4c60979cfde95ef27716b9d8763d5ff0bd73dfa1"
+    },
+    {
+      "name": "gallery-echoes-online-qr.svg",
+      "source": "gallery-echoes-app-qr.svg",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "sha256": "8877223c3f53ffa7a554225cf8ed3880f4fcced33429ee071618bcf00f43f864"
+    },
+    {
+      "name": "gallery-echoes-netlify-qr.svg",
+      "source": "gallery-echoes-app-qr.svg",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "sha256": "8877223c3f53ffa7a554225cf8ed3880f4fcced33429ee071618bcf00f43f864"
+    }
+  ],
+  "scan_card": "scan-card.html",
+  "verification": "PNG pixels, white quiet zone and encoded matrix checked; all PNG variants independently decoded with jsQR 1.4.0. No real phone scan has been used.",
+  "limits": "Public gallery browsing uses the visitor's Internet connection and does not require GalleryEchoes Wi-Fi. Physical light control separately requires a powered board and joining GalleryEchoes. The optional local control QR is not a public gallery link.",
+  "independent_decoder_report": "independent-decode.json"
+}

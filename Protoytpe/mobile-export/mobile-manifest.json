@@ -1,0 +1,351 @@
+{
+  "firmwareVersion": "1.4.1",
+  "entry": "http://192.168.4.1/",
+  "stamp": "392515caf6",
+  "uniqueStoredBytes": 930959,
+  "budgetBytes": 2100000,
+  "assets": [
+    {
+      "path": "/index.html",
+      "type": "text/html; charset=utf-8",
+      "gzip": true,
+      "originalBytes": 1136,
+      "sha256": "ff08d83500bc8d0576dd5929c66d3d932655950228c4e2ee4e05b4e513e9be05",
+      "storedBytes": 592,
+      "symbol": "MOBILE_DATA_0"
+    },
+    {
+      "path": "/dist/app.js",
+      "type": "text/javascript; charset=utf-8",
+      "gzip": true,
+      "originalBytes": 326429,
+      "sha256": "7c8c03ff9c41ce4e084c9d64de37965c898a1c03100a64401044311f22124a64",
+      "storedBytes": 97583,
+      "symbol": "MOBILE_DATA_1"
+    },
+    {
+      "path": "/dist/style.css",
+      "type": "text/css; charset=utf-8",
+      "gzip": true,
+      "originalBytes": 84819,
+      "sha256": "38f6b99cd0dad337777271bef1cd06bec129bac30e4a6124c6bba73decaab492",
+      "storedBytes": 16619,
+      "symbol": "MOBILE_DATA_2"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "type": "application/manifest+json",
+      "gzip": true,
+      "originalBytes": 291,
+      "sha256": "1180f94011428253ed1a6883409fc8220df1c195a22107a02a5147d98a6ce593",
+      "storedBytes": 189,
+      "symbol": "MOBILE_DATA_3"
+    },
+    {
+      "path": "/app-icon.svg",
+      "type": "image/svg+xml",
+      "gzip": true,
+      "originalBytes": 301,
+      "sha256": "a4a86142c73f716444e7d633a7361bfedfd5a14eafb4095fc6c8e5a83835e856",
+      "storedBytes": 230,
+      "symbol": "MOBILE_DATA_4"
+    },
+    {
+      "path": "/app-icon-192.png",
+      "type": "image/png",
+      "gzip": false,
+      "originalBytes": 6036,
+      "sha256": "c02cce34ab665bab4fab535e8a96999d3247ace96ab2df5633b7d77b1c831e59",
+      "storedBytes": 6036,
+      "symbol": "MOBILE_DATA_5"
+    },
+    {
+      "path": "/app-icon-512.png",
+      "type": "image/png",
+      "gzip": false,
+      "originalBytes": 21246,
+      "sha256": "860ce6d529c1f6392eedf5809a4477ac8b446ef08f086d5ba3dc0f81c8cb7793",
+      "storedBytes": 21246,
+      "symbol": "MOBILE_DATA_6"
+    },
+    {
+      "path": "/public/assets/collection-01.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 44276,
+      "sha256": "a34c3f16e493235feb0468854182f412287febe29b33d715f6b656c41a5a3b0e",
+      "storedBytes": 44276,
+      "symbol": "MOBILE_DATA_7"
+    },
+    {
+      "path": "/public/assets/collection-02.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 76852,
+      "sha256": "3b035b1e3c468e807b079bf0b90290cc9ed67d9889bb9315bb8a1f85e9b046ac",
+      "storedBytes": 76852,
+      "symbol": "MOBILE_DATA_8"
+    },
+    {
+      "path": "/public/assets/collection-03.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 59066,
+      "sha256": "92bfb963fa240731693607e432caf2446da719c750c8da1267a0eaa24c901a81",
+      "storedBytes": 59066,
+      "symbol": "MOBILE_DATA_9"
+    },
+    {
+      "path": "/public/assets/collection-04.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 72632,
+      "sha256": "f3fde5351b57e958e5d2971823ff0b81fb694f4d0343b1434b318ab68ee773b5",
+      "storedBytes": 72632,
+      "symbol": "MOBILE_DATA_10"
+    },
+    {
+      "path": "/public/assets/collection-05.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 47386,
+      "sha256": "85f46f24c7ed2ff9320d2fc6ac1b70e4dc14dd9f9e4eb7c59dad5a147b2e501e",
+      "storedBytes": 47386,
+      "symbol": "MOBILE_DATA_11"
+    },
+    {
+      "path": "/public/assets/collection-06.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 54532,
+      "sha256": "5b4a420e89439765ca976e8c1be3478a079cc97742ef833e2c124fe0f59a51fc",
+      "storedBytes": 54532,
+      "symbol": "MOBILE_DATA_12"
+    },
+    {
+      "path": "/public/assets/collective-visual.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 2402,
+      "sha256": "03053e93101287c24b32e0eb35fce8e09c2b11fb6828dda1989106527179ca12",
+      "storedBytes": 2402,
+      "symbol": "MOBILE_DATA_13"
+    },
+    {
+      "path": "/public/assets/feeling-reference.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 58472,
+      "sha256": "c7ebf94c3a9772dd0612f271097a84d45785faf7c2ebd49a0964e548f53520d2",
+      "storedBytes": 58472,
+      "symbol": "MOBILE_DATA_14"
+    },
+    {
+      "path": "/public/assets/figma-mode-personal.svg",
+      "type": "image/svg+xml",
+      "gzip": true,
+      "originalBytes": 642,
+      "sha256": "cd709e097ec0de6935ba8f1c63c424d270ac16f70b372d497e9e9321ca71ffa9",
+      "storedBytes": 395,
+      "symbol": "MOBILE_DATA_15"
+    },
+    {
+      "path": "/public/assets/figma-team-symbol.svg",
+      "type": "image/svg+xml",
+      "gzip": true,
+      "originalBytes": 1755,
+      "sha256": "a9716b70745748795e8a1bdeae75e8caa022dc9232c3ac0f58495cfcfcffadf0",
+      "storedBytes": 551,
+      "symbol": "MOBILE_DATA_16"
+    },
+    {
+      "path": "/public/assets/figma-welcome-bottom.svg",
+      "type": "image/svg+xml",
+      "gzip": true,
+      "originalBytes": 637,
+      "sha256": "4d942fb23c579c66ab05c66dffc7ec42eb335811fd340cbc4e834f1b575cabe8",
+      "storedBytes": 409,
+      "symbol": "MOBILE_DATA_17"
+    },
+    {
+      "path": "/public/assets/figma-welcome-left.svg",
+      "type": "image/svg+xml",
+      "gzip": true,
+      "originalBytes": 639,
+      "sha256": "f15107057f81f1f243d5fa6adddb14686a6ec3169e250e4d23b2478cd5864798",
+      "storedBytes": 410,
+      "symbol": "MOBILE_DATA_18"
+    },
+    {
+      "path": "/public/assets/figma-welcome-top.svg",
+      "type": "image/svg+xml",
+      "gzip": true,
+      "originalBytes": 685,
+      "sha256": "6381cd5e999c5bc505ae8e88e325883667fa2e7e75a8f41b9b8283016f533688",
+      "storedBytes": 417,
+      "symbol": "MOBILE_DATA_19"
+    },
+    {
+      "path": "/public/assets/my-sketch.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 13528,
+      "sha256": "07289ec818336d0616179fbc75ee7f1dc4a4d83a149cbe62841dea9772eb8469",
+      "storedBytes": 13528,
+      "symbol": "MOBILE_DATA_20"
+    },
+    {
+      "path": "/public/assets/nfc-card.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 4922,
+      "sha256": "03df41def2fafe329167bd5621a006bdc0f9a222610ae95d61b1052d633f3e69",
+      "storedBytes": 4922,
+      "symbol": "MOBILE_DATA_21"
+    },
+    {
+      "path": "/public/assets/nfc-proximity-bg.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 27368,
+      "sha256": "8b2ff42fde8851c7eb53480acdd03fdc462de4c2b9c4ee6350db6a09b380c0d9",
+      "storedBytes": 27368,
+      "symbol": "MOBILE_DATA_22"
+    },
+    {
+      "path": "/public/assets/pair-team-bg.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 17958,
+      "sha256": "0171c70d512c8e3eb6eeb168866a6ac2700f7e605b7a808c1e0c7f9e0672e5ad",
+      "storedBytes": 17958,
+      "symbol": "MOBILE_DATA_23"
+    },
+    {
+      "path": "/public/assets/reflection-art.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 76308,
+      "sha256": "6b90d1cf891391672d4187a385f24d887f4b32ed6dab1ae31cedd49a4925e488",
+      "storedBytes": 76308,
+      "symbol": "MOBILE_DATA_24"
+    },
+    {
+      "path": "/public/assets/shared-sketch.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 13528,
+      "sha256": "07289ec818336d0616179fbc75ee7f1dc4a4d83a149cbe62841dea9772eb8469",
+      "storedBytes": 13528,
+      "symbol": "MOBILE_DATA_20"
+    },
+    {
+      "path": "/public/assets/shared-visual.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 1750,
+      "sha256": "09af5c312521b859bdef631ba805241fe0422298b08fd36def5234f98c44b224",
+      "storedBytes": 1750,
+      "symbol": "MOBILE_DATA_25"
+    },
+    {
+      "path": "/public/assets/sketch-anonymous.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 6312,
+      "sha256": "5bf26db5cc20a6163b24b7c53ac4517e3cede3746d0dfecd624241902d6a145b",
+      "storedBytes": 6312,
+      "symbol": "MOBILE_DATA_26"
+    },
+    {
+      "path": "/public/assets/sketch-leo.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 11130,
+      "sha256": "82d79b9bb274b1d35623581d4911fa007b4b246434d04b10d1b7f9369e4da7eb",
+      "storedBytes": 11130,
+      "symbol": "MOBILE_DATA_27"
+    },
+    {
+      "path": "/public/assets/sketch-mia.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 24862,
+      "sha256": "91a73d62e0194f5eae52da64984e9c2454b0d29b02699702685193ec0a622977",
+      "storedBytes": 24862,
+      "symbol": "MOBILE_DATA_28"
+    },
+    {
+      "path": "/public/assets/sketch-rina.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 12996,
+      "sha256": "63672c7cc1e1ed36bdd6fb0a2a9b51691c63df15a8b3ed24894cb225174a458a",
+      "storedBytes": 12996,
+      "symbol": "MOBILE_DATA_29"
+    },
+    {
+      "path": "/public/assets/unvisited-11.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 22410,
+      "sha256": "08ae2521c4e7f253bbc449b2730879902e0658feffb8d8303addd262e544f4e8",
+      "storedBytes": 22410,
+      "symbol": "MOBILE_DATA_30"
+    },
+    {
+      "path": "/public/assets/unvisited-12.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 76852,
+      "sha256": "3b035b1e3c468e807b079bf0b90290cc9ed67d9889bb9315bb8a1f85e9b046ac",
+      "storedBytes": 76852,
+      "symbol": "MOBILE_DATA_8"
+    },
+    {
+      "path": "/public/assets/unvisited-13.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 25648,
+      "sha256": "b24095b07ada38a7ab9d30d771b08a3291da9c3a0aa149c91847c1180f7d5f15",
+      "storedBytes": 25648,
+      "symbol": "MOBILE_DATA_31"
+    },
+    {
+      "path": "/public/assets/unvisited-14.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 13264,
+      "sha256": "0e39f2fe131da83977146f2b442ee6e63761588040aba54ef2bec24af903705f",
+      "storedBytes": 13264,
+      "symbol": "MOBILE_DATA_32"
+    },
+    {
+      "path": "/public/assets/unvisited-15.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 16174,
+      "sha256": "ef02de61a3eca2760399035096b276221c8ee4fce895db3c0e265e2627996b49",
+      "storedBytes": 16174,
+      "symbol": "MOBILE_DATA_33"
+    },
+    {
+      "path": "/public/assets/unvisited-16.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 13950,
+      "sha256": "1e3e5804031991728fcc549d472f87be30a5e34ba9b0f8b154432756a5966628",
+      "storedBytes": 13950,
+      "symbol": "MOBILE_DATA_34"
+    },
+    {
+      "path": "/public/assets/water-lilies.webp",
+      "type": "image/webp",
+      "gzip": false,
+      "originalBytes": 82084,
+      "sha256": "ac0f3be3d9d84065da43c0ab46237ef39b5a299ad36b5a0e67d64af1e02a4e1f",
+      "storedBytes": 82084,
+      "symbol": "MOBILE_DATA_35"
+    }
+  ]
+}

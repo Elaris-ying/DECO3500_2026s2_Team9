@@ -1,0 +1,81 @@
+{
+  "generator": "ReportLab 4.4.9 QR encoder; Pillow integer-pixel raster",
+  "mode": "public-https",
+  "app_url": "https://gallery-echoes-mobile-visit.citrusdeer8.chatgpt.site/",
+  "artifacts": [
+    {
+      "name": "gallery-echoes-app-qr",
+      "payload": "https://gallery-echoes-mobile-visit.citrusdeer8.chatgpt.site/",
+      "error_correction": "M",
+      "qr_version": 4,
+      "core_modules": 33,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        656,
+        656
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "b4566f40aaf7b70da4855cb935b2cbdaa8c4b073bf3ec0e79d236b5f1c1081e5",
+      "svg_sha256": "bd7aca71a4b33d1cb20dfb76bc8b16e32a5138c4d5d221beea66fa273f8c6c6a",
+      "matrix_sha256": "8ff0ee36d23a47eefa5dfc9593f2fe94c75caf505db1ddda944ae9fabae41025"
+    },
+    {
+      "name": "gallery-echoes-wifi-qr",
+      "payload": "WIFI:T:nopass;S:GalleryEchoes;;",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "b87d65cfae93711d73e1f58c7dd47f50df95da956c2d4314f7924fffbc871eed",
+      "svg_sha256": "8c30c872e36400f07aac39a2f7d6475fe8c762544023248536683ebac966adfb",
+      "matrix_sha256": "f1818f83a6af19e36e3b84f0c3635bc61cb8aa6b7301fb7ba2a0baf0ceb642e8"
+    },
+    {
+      "name": "gallery-echoes-local-control-qr",
+      "payload": "http://192.168.4.1/?screen=device",
+      "error_correction": "M",
+      "qr_version": 3,
+      "core_modules": 29,
+      "quiet_zone_modules": 4,
+      "pixels_per_module": 16,
+      "pixel_dimensions": [
+        592,
+        592
+      ],
+      "matrix_matches_png": true,
+      "quiet_zone_white": true,
+      "only_black_and_white_pixels": true,
+      "png_sha256": "9c8f394c39b802289585cd7e10a89bb8dad5114fc50500e0a67f06e2b3228f02",
+      "svg_sha256": "b7123f71e379a552cdef4a90bd596c0c582684ad4c2131f5004ec667c322641b",
+      "matrix_sha256": "1d8162fd88124e2e3a5a5de424e1a3d027cc7cfec2ed5661ca633dc711d525c8"
+    }
+  ],
+  "public_aliases": [
+    {
+      "name": "gallery-echoes-online-qr.png",
+      "source": "gallery-echoes-app-qr.png",
+      "payload": "https://gallery-echoes-mobile-visit.citrusdeer8.chatgpt.site/",
+      "sha256": "b4566f40aaf7b70da4855cb935b2cbdaa8c4b073bf3ec0e79d236b5f1c1081e5"
+    },
+    {
+      "name": "gallery-echoes-online-qr.svg",
+      "source": "gallery-echoes-app-qr.svg",
+      "payload": "https://gallery-echoes-mobile-visit.citrusdeer8.chatgpt.site/",
+      "sha256": "bd7aca71a4b33d1cb20dfb76bc8b16e32a5138c4d5d221beea66fa273f8c6c6a"
+    }
+  ],
+  "scan_card": "scan-card.html",
+  "verification": "PNG pixels, complete white quiet zone and encoded matrix checked. No independent QR decoder or real phone scan has been used.",
+  "limits": "Public gallery browsing uses the visitor's Internet connection and does not require GalleryEchoes Wi-Fi. Physical light control separately requires a powered board and joining GalleryEchoes. The optional local control QR is not a public gallery link."
+}

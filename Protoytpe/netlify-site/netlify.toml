@@ -1,0 +1,4 @@
+# 在本目录作为项目根目录时，直接发布已有 dist；不运行构建。
+[build]
+  publish = "dist"
+  command = ""

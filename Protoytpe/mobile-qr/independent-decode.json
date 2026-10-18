@@ -1,0 +1,42 @@
+{
+  "decoder": "jsQR 1.4.0",
+  "independentDecodePassed": true,
+  "decoded": [
+    {
+      "file": "gallery-echoes-app-qr.png",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "width": 592,
+      "height": 592,
+      "sha256": "bc1d0cd693d5bbd5c199f89c4c60979cfde95ef27716b9d8763d5ff0bd73dfa1"
+    },
+    {
+      "file": "gallery-echoes-wifi-qr.png",
+      "payload": "WIFI:T:nopass;S:GalleryEchoes;;",
+      "width": 592,
+      "height": 592,
+      "sha256": "b87d65cfae93711d73e1f58c7dd47f50df95da956c2d4314f7924fffbc871eed"
+    },
+    {
+      "file": "gallery-echoes-local-control-qr.png",
+      "payload": "http://192.168.4.1/?screen=device",
+      "width": 592,
+      "height": 592,
+      "sha256": "9c8f394c39b802289585cd7e10a89bb8dad5114fc50500e0a67f06e2b3228f02"
+    },
+    {
+      "file": "gallery-echoes-online-qr.png",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "width": 592,
+      "height": 592,
+      "sha256": "bc1d0cd693d5bbd5c199f89c4c60979cfde95ef27716b9d8763d5ff0bd73dfa1"
+    },
+    {
+      "file": "gallery-echoes-netlify-qr.png",
+      "payload": "https://gallery-echoes-mobile.netlify.app/",
+      "width": 592,
+      "height": 592,
+      "sha256": "bc1d0cd693d5bbd5c199f89c4c60979cfde95ef27716b9d8763d5ff0bd73dfa1"
+    }
+  ],
+  "limits": "从真实 PNG 独立解码通过；没有替代真实手机扫码与硬件联调。"
+}

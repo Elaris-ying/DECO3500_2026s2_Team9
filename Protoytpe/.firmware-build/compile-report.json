@@ -1,0 +1,49 @@
+{
+  "firmware": "1.4.1",
+  "validation": "Real Nano ESP32 sketch compile, cached matching core/library relink, and ESP32 image generation; no upload or physical LED test.",
+  "fqbn": "arduino:esp32:nano_nora:USBMode=default,PartitionScheme=default,PinNumbers=default",
+  "platform": "C:\\Users\\yf\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\esp32\\2.0.18-arduino.5",
+  "cache": "C:\\Users\\yf\\AppData\\Local\\Temp\\arduino\\sketches\\C4D5EB628EBD9A18E152A2E3FD984E47",
+  "sourceSha256": "9bf618fa909e71c82c7cb9a907b7c47e4e3ca7b3eed882c3ad0adfccdc6ead5c",
+  "mobileAssetsSha256": "698ab2b3aeb54b3120116a07bae406ca43016e3c3878cddd78c0d3715a7b975d",
+  "coreArchiveSha256": "d5e02faa2e77904ad381741e3037bbfc3c52455c6589c5681b69e94dd7a79005",
+  "variantObjects": [
+    {
+      "file": "C:\\Users\\yf\\AppData\\Local\\Temp\\arduino\\sketches\\C4D5EB628EBD9A18E152A2E3FD984E47\\core\\dfu_callbacks.cpp.o",
+      "sha256": "4475673053af9ef0b307423dea53ca2f2ef3b655a4c5027c60f23c074161cd1e"
+    },
+    {
+      "file": "C:\\Users\\yf\\AppData\\Local\\Temp\\arduino\\sketches\\C4D5EB628EBD9A18E152A2E3FD984E47\\core\\double_tap.c.o",
+      "sha256": "07af2cd419ac00b64b810bb109a0cfc336692a6a76c6a712db04374a2a83d264"
+    },
+    {
+      "file": "C:\\Users\\yf\\AppData\\Local\\Temp\\arduino\\sketches\\C4D5EB628EBD9A18E152A2E3FD984E47\\core\\io_pin_remap.cpp.o",
+      "sha256": "37dde41a969876906ed6615280c86f54df20576112a2c928bbcc8d6155634004"
+    },
+    {
+      "file": "C:\\Users\\yf\\AppData\\Local\\Temp\\arduino\\sketches\\C4D5EB628EBD9A18E152A2E3FD984E47\\core\\variant.cpp.o",
+      "sha256": "8e7d146077534fb591d8f14d6a15b3ae4fd7b778a6f903aef26370fa999c8c0b"
+    }
+  ],
+  "maximumBinaryBytes": 3145728,
+  "builds": [
+    {
+      "swapGreenBlue": 0,
+      "binaryBytes": 1672784,
+      "freePartitionBytes": 1472944,
+      "imageSha256": "a82cc553afb076a7707a499f79e7e16c41a90fdac4d77e0a116e97a9d934754f",
+      "image": "E:\\UQ\\figma\\.firmware-build\\swap-0\\gallery_echoes_wifi.bin",
+      "elf": "E:\\UQ\\figma\\.firmware-build\\swap-0\\gallery_echoes_wifi.elf",
+      "map": "E:\\UQ\\figma\\.firmware-build\\swap-0\\gallery_echoes_wifi.map"
+    },
+    {
+      "swapGreenBlue": 1,
+      "binaryBytes": 1672784,
+      "freePartitionBytes": 1472944,
+      "imageSha256": "34eff6d1af84c62b48fb3abfb976da7420ae0bef1c2a291e17690849058b9478",
+      "image": "E:\\UQ\\figma\\.firmware-build\\swap-1\\gallery_echoes_wifi.bin",
+      "elf": "E:\\UQ\\figma\\.firmware-build\\swap-1\\gallery_echoes_wifi.elf",
+      "map": "E:\\UQ\\figma\\.firmware-build\\swap-1\\gallery_echoes_wifi.map"
+    }
+  ]
+}

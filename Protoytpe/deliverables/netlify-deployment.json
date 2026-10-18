@@ -1,0 +1,10 @@
+{
+  "site_id": "6af768ac-2500-4d87-9cd9-fefba8517b39",
+  "site_name": "gallery-echoes-mobile",
+  "deploy_id": "6ad48fa2ca1f07ec502c4890",
+  "deploy_url": "https://6ad48fa2ca1f07ec502c4890--gallery-echoes-mobile.netlify.app",
+  "logs": "https://app.netlify.com/projects/gallery-echoes-mobile/deploys/6ad48fa2ca1f07ec502c4890",
+  "function_logs": "https://app.netlify.com/projects/gallery-echoes-mobile/logs/functions",
+  "edge_function_logs": "https://app.netlify.com/projects/gallery-echoes-mobile/logs/edge-functions",
+  "url": "https://gallery-echoes-mobile.netlify.app"
+}
