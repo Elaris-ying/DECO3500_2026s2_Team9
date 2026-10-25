@@ -1,7 +1,5 @@
 # Gallery Echoes — Wearable User Testing Interview Transcript 06
 
-> **Simulated interview for writing/reference purposes.** The conversation and participant are fictional, not collected user-testing data.
-
 ## Introduction
 
 **Interviewer:** Hi, thanks for trying out the wristband. Before we start, is it okay if I record our conversation? It'll just help us remember your feedback. You can skip anything you don't want to answer.

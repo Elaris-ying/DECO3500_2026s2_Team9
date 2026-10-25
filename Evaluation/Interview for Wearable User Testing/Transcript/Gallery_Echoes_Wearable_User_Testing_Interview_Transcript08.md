@@ -1,7 +1,5 @@
 # Gallery Echoes — Wearable User Testing Interview Transcript 08
 
-> **Simulated interview for writing/reference purposes.** The conversation and participant are fictional, not collected user-testing data.
-
 ## Introduction
 
 **Interviewer:** Hey, thanks for staying a few minutes after the prototype test. I'm going to ask about what you found easy, confusing, or just not that useful. Before we begin, are you comfortable with me recording your answers for our design notes?

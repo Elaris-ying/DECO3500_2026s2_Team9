@@ -1,7 +1,5 @@
 # Gallery Echoes — Wearable User Testing Interview Transcript 07
 
-> **Simulated interview for writing/reference purposes.** The conversation and participant are fictional, not collected user-testing data.
-
 ## Opening
 
 **Interviewer:** Thanks for helping us test Gallery Echoes. I'd like to hear your first impressions while they're still fresh. Is it alright to audio-record the interview? We won't attach your name to the notes.
