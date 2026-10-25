@@ -2,7 +2,7 @@
 
 **Descriptive frequency analysis for the sticker responses + qualitative content analysis for the open-ended sticky notes.**
 
-## 1. Analysis method
+# 1. Analysis method
 
 The culture probe generated two forms of data:
 
